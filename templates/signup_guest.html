@@ -1,0 +1,42 @@
+{% extends 'base/signin_base.html' %}
+
+{% block page_title %}Sign Up - Guest{% endblock page_title %}
+
+{% set stylesheet_file = 'styles/signup_guest.css' %}
+
+{% block content %}
+    <div class="container">
+        <div class="row justify-content-center"> <!-- Add this row and justify-content-center -->
+            <div class="signup-container col-md-8 col-lg-6"> <!-- Adjust column width for responsiveness -->
+                <!-- Form Column -->
+                <div class="col-12 col-md-6"> <!-- Take full width on small devices -->
+                    <h2>Sign Up</h2>
+                    <form action="/submit_signup" method="POST">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="name" name="name" placeholder="Name" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="phone" name="phone" placeholder="Phone">
+                        </div>
+                        <button type="submit" class="btn btn-secondary">Sign Up</button>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="/login" class="su-link">Already have an account? Login</a>
+                    </div>
+                </div>
+                <!-- Image Column, visible only on desktops -->
+                <div class="col-md-6 d-none d-md-block">
+                    <img src="{{ url_for('static', filename='images/signup-guest.jpeg') }}" alt="Sign Up Image" class="signup-image">
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
