@@ -3,7 +3,7 @@ from flask import Flask, render_template
 app = Flask(__name__)
 
 isLoggedIn = True
-UserType = "guest"
+UserType = "organizer"
 
 @app.route('/')
 def index():

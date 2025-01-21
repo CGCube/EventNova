@@ -1,0 +1,26 @@
+/* Basic styling for the profile organizer page */
+
+.container {
+    margin-top: 20px;
+}
+
+.card {
+    border-radius: 10px;
+}
+
+.card-title {
+    font-size: 1.5rem;
+}
+
+.custom-btn {
+    margin-right: 10px;
+}
+
+textarea[readonly] {
+    background-color: #e9ecef;
+    opacity: 1;
+}
+
+nav-link.active {
+    font-weight: bold;
+}

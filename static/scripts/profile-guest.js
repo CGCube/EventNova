@@ -26,12 +26,56 @@ document.addEventListener('DOMContentLoaded', function () {
     // Listen for mousemove events
     document.addEventListener('mousemove', handleMouseMove);
 
-    // Alert placeholders for buttons
+    // Functionality for the Edit Profile button
     document.getElementById('editProfileBtn').addEventListener('click', function () {
-        alert('Profile editing functionality coming soon!');
+        // Enable editing of profile fields
+        document.getElementById('name').removeAttribute('readonly');
+        document.getElementById('email').removeAttribute('readonly');
+        document.getElementById('phone').removeAttribute('readonly');
+        
+        // Show the Save and Cancel buttons
+        document.getElementById('editProfileBtn').style.display = 'none';
+        document.getElementById('submitProfileBtn').style.display = 'inline-block';
+        document.getElementById('cancelEditProfileBtn').style.display = 'inline-block';
     });
 
+    document.getElementById('cancelEditProfileBtn').addEventListener('click', function () {
+        // Disable editing of profile fields
+        document.getElementById('name').setAttribute('readonly', true);
+        document.getElementById('email').setAttribute('readonly', true);
+        document.getElementById('phone').setAttribute('readonly', true);
+
+        // Hide the Save and Cancel buttons
+        document.getElementById('editProfileBtn').style.display = 'inline-block';
+        document.getElementById('submitProfileBtn').style.display = 'none';
+        document.getElementById('cancelEditProfileBtn').style.display = 'none';
+    });
+
+    // Functionality for the Change Password button
     document.getElementById('changePasswordBtn').addEventListener('click', function () {
-        alert('Password change functionality coming soon!');
+        // Empty the current password field and rename it
+        const currentPasswordField = document.getElementById('current-password');
+        currentPasswordField.value = '';
+        currentPasswordField.setAttribute('placeholder', 'Current Password');
+
+        // Show the new password and confirm password fields
+        document.getElementById('new-password-fields').style.display = 'block';
+        document.getElementById('confirm-password-fields').style.display = 'block';
+        document.getElementById('submitPasswordBtn').style.display = 'inline-block';
+        document.getElementById('cancelChangePasswordBtn').style.display = 'inline-block';
+
+        // Hide the Change Password button
+        document.getElementById('changePasswordBtn').style.display = 'none';
+    });
+
+    document.getElementById('cancelChangePasswordBtn').addEventListener('click', function () {
+        // Hide the new password and confirm password fields
+        document.getElementById('new-password-fields').style.display = 'none';
+        document.getElementById('confirm-password-fields').style.display = 'none';
+        document.getElementById('submitPasswordBtn').style.display = 'none';
+        document.getElementById('cancelChangePasswordBtn').style.display = 'none';
+
+        // Show the Change Password button
+        document.getElementById('changePasswordBtn').style.display = 'inline-block';
     });
 });
