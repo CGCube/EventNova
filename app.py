@@ -28,9 +28,13 @@ def signup_guest():
 def signup_organizer():
     return render_template('signup_organizer.html')
 
-@app.route('/add-event')
-def add_event():
-    return render_template('add_event.html')
+if isLoggedIn & (UserType == "organizer"):
+    @app.route('/add-event')
+    def add_event():
+        return render_template('add_event.html')
+    @app.route('/update-event')
+    def edit_event():
+        return render_template('update_event.html')
 
 @app.route('/profile')
 def user_profile():
