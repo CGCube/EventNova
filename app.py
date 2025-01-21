@@ -28,8 +28,12 @@ def signup_guest():
 def signup_organizer():
     return render_template('signup_organizer.html')
 
+@app.route('/add-event')
+def add_event():
+    return render_template('add_event.html')
+
 @app.route('/profile')
-def userProfile():
+def user_profile():
     if isLoggedIn:
         if UserType == "guest":
             return render_template('profile_guest.html')
