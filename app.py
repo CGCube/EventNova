@@ -35,6 +35,9 @@ if isLoggedIn & (UserType == "organizer"):
     @app.route('/update-event')
     def edit_event():
         return render_template('update_event.html')
+    @app.route('/event-stats')
+    def event_stats():
+        return render_template('event_stats.html')
 
 @app.route('/profile')
 def user_profile():
