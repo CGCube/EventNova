@@ -28,6 +28,18 @@ def signup_guest():
 def signup_organizer():
     return render_template('signup_organizer.html')
 
+@app.route('/shows')
+def shows():
+    return render_template('shows.html')
+
+@app.route('/movies')
+def movies():
+    return render_template('movies.html')
+
+@app.route('/events')
+def events():
+    return render_template('events.html')
+
 if isLoggedIn & (UserType == "organizer"):
     @app.route('/add-event')
     def add_event():
