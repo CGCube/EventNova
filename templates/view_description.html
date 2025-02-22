@@ -1,0 +1,79 @@
+{% if isLoggedIn %}
+    {% extends 'base/header_footer_loggedin.html' %}
+{% else %}
+    {% extends 'base/header_footer.html' %}
+{% endif %}
+
+{% block page_title %}Description{% endblock page_title %}
+
+{% set page_style = 'styles/view_description.css' %} <!-- Dynamically set the CSS file -->
+{% set page_script = 'scripts/view_description.js' %} <!-- Dynamically set the JS file -->
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="d-inline">Sample Show/Event/Movie Title</h2>
+            <hr class="d-inline" style="width: 50px; height: 2px; background-color: #343a40; border: none;">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <img src="https://picsum.photos/600/400" class="img-fluid" alt="Sample Show/Event/Movie Title">
+        </div>
+        <div class="col-md-6">
+            <h3>Description</h3>
+            <p>This is a sample description for the show/event/movie. It contains details about the show/event/movie, including its features, highlights, and any other relevant information.</p>
+            <h4>Genre</h4>
+            <p>Action, Drama</p>
+            <a href="#" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col">
+            <h3>Reviews</h3>
+            <div id="reviews-container">
+                <!-- Sample reviews for demonstration -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Rating: 5</h5>
+                        <p class="card-text">This is a sample review. The show/event/movie was amazing!</p>
+                        <p class="card-text"><small class="text-muted">Posted on 2025-02-20</small></p>
+                    </div>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Rating: 4</h5>
+                        <p class="card-text">I really enjoyed this show/event/movie. Highly recommend it!</p>
+                        <p class="card-text"><small class="text-muted">Posted on 2025-02-21</small></p>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Leave a Review</h5>
+                    <form id="review-form">
+                        <div class="mb-3">
+                            <label for="rating" class="form-label">Rating (0-5)</label>
+                            <select class="form-select" id="rating" required>
+                                <option value="" disabled selected>Select a rating</option>
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Comment</label>
+                            <textarea class="form-control" id="comment" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn" style="background-color: #212529; color: white;">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

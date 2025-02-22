@@ -1,16 +1,19 @@
 from flask import Flask, render_template
 
+shows = [
+    {"id": 1, "title": "Show 1", "description": "Description for Show 1", "image": "https://picsum.photos/200/300", "booking_link": "#"},
+    {"id": 2, "title": "Show 2", "description": "Description for Show 2", "image": "https://picsum.photos/200/300", "booking_link": "#"},
+    # Add more shows as needed
+]
+
 app = Flask(__name__)
 
-isLoggedIn = True
+isLoggedIn = 0
 UserType = "organizer"
 
 @app.route('/')
 def index():
-    if isLoggedIn:
-        return render_template('home_loggedin.html')
-    else:
-        return render_template('home.html')
+    return render_template('home.html', isLoggedIn=isLoggedIn)
 
 @app.route('/login')
 def login():
@@ -30,15 +33,15 @@ def signup_organizer():
 
 @app.route('/shows')
 def shows():
-    return render_template('shows.html')
+    return render_template('shows.html', isLoggedIn=isLoggedIn)
 
 @app.route('/movies')
 def movies():
-    return render_template('movies.html')
+    return render_template('movies.html', isLoggedIn=isLoggedIn)
 
-@app.route('/events')
-def events():
-    return render_template('events.html')
+@app.route('/view_description')
+def view_description():
+    return render_template('view_description.html', isLoggedIn=isLoggedIn)
 
 if isLoggedIn & (UserType == "organizer"):
     @app.route('/add-event')

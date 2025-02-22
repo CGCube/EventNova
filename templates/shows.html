@@ -1,4 +1,9 @@
-{% extends 'base/header_footer.html' %}
+{% if isLoggedIn %}
+    {% extends 'base/header_footer_loggedin.html' %}
+{% else %}
+    {% extends 'base/header_footer.html' %}
+{% endif %}
+
 
 {% block page_title %}Shows{% endblock page_title %}
 
@@ -22,7 +27,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Show {{ item_index + 1 }}</h5>
                         <p class="card-text">Description for Show {{ item_index + 1 }}</p>
-                        <a href="#" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
+                        <a href="/view_description" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
                     </div>
                 </div>
             </div>
