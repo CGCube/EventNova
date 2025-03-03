@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -78,6 +79,19 @@ def user_profile():
             return render_template('profile_organizer.html')
     else:
         return 'NOT LOGGED IN'
+
+@app.route('/booking_summary')
+def booking_summary():
+    payment_success = True  # Example variable
+    event_name = "Sample Event"
+    location = "Sample Location"
+    date = "2025-03-03"
+    time = "18:30"
+    seats = "A1, A2, A3"
+    txn_id = "1234567890"
+    booking_date = "2025-03-03"
+    booking_time = "19:07:33"
+    return render_template('booking_summary.html', isLoggedIn=True, payment_success=payment_success, event_name=event_name, location=location, date=date, time=time, seats=seats, txn_id=txn_id, booking_date=booking_date, booking_time=booking_time)
 
 if __name__ == '__main__':
     app.run(debug=True)
