@@ -1,0 +1,33 @@
+{% if isLoggedIn %}
+    {% extends 'base/header_footer_loggedin.html' %}
+{% else %}
+    {% extends 'base/header_footer.html' %}
+{% endif %}
+
+{% block page_title %}Seat Selection{% endblock page_title %}
+
+{% set page_style = url_for('static', filename='styles/seat-selection.css') %}
+{% set page_script = url_for('static', filename='scripts/seat-selection.js') %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">Select Your Seat</h1>
+    <form action="#" method="POST">
+        <div class="seat-grid">
+            <table class="table table-borderless text-center">
+                {% for row in seat_labels %}
+                    <tr>
+                        {% for seat in row %}
+                            <td>
+                                <input type="checkbox" id="{{ seat }}" name="seats" value="{{ seat }}" class="btn-check" {% if seat in selected_seats %} checked disabled {% endif %}>
+                                <label class="btn btn-outline-primary seat {% if seat in selected_seats %} bg-secondary text-white border-secondary {% endif %}" for="{{ seat }}">{{ seat }}</label>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <button type="submit" class="btn btn-success mt-4">Submit Selected Seats</button>
+    </form>
+</div>
+{% endblock content %}

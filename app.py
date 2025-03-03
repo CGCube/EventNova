@@ -1,15 +1,24 @@
 from flask import Flask, render_template
 
+app = Flask(__name__)
+
 shows = [
     {"id": 1, "title": "Show 1", "description": "Description for Show 1", "image": "https://picsum.photos/200/300", "booking_link": "#"},
     {"id": 2, "title": "Show 2", "description": "Description for Show 2", "image": "https://picsum.photos/200/300", "booking_link": "#"},
     # Add more shows as needed
 ]
 
-app = Flask(__name__)
-
 isLoggedIn = 0
 UserType = "organizer"
+
+def generate_seat_labels(rows, cols):
+    labels = []
+    for i in range(rows):
+        row_labels = []
+        for j in range(1, cols + 1):
+            row_labels.append(f"{chr(65 + i)}{j}")
+        labels.append(row_labels)
+    return labels
 
 @app.route('/')
 def index():
@@ -42,6 +51,12 @@ def movies():
 @app.route('/view_description')
 def view_description():
     return render_template('view_description.html', isLoggedIn=isLoggedIn)
+
+@app.route('/select_seats')
+def select_seats():
+    seat_labels = generate_seat_labels(10, 20)
+    selected_seats = ['A1', 'B2', 'C3']  # Example selected seats
+    return render_template('seat_selection.html', isLoggedIn=True, seat_labels=seat_labels, selected_seats=selected_seats)
 
 if isLoggedIn & (UserType == "organizer"):
     @app.route('/add-event')
