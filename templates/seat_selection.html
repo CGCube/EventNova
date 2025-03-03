@@ -12,7 +12,7 @@
 {% block content %}
 <div class="container mt-5">
     <h1 class="text-center">Select Your Seat</h1>
-    <form action="#" method="POST">
+    <form action="{{ url_for('select_seats') }}" method="POST" id="seatForm">
         <div class="seat-grid">
             <table class="table table-borderless text-center">
                 {% for row in seat_labels %}
@@ -27,7 +27,7 @@
                 {% endfor %}
             </table>
         </div>
-        <button type="submit" class="btn btn-success mt-4">Submit Selected Seats</button>
+        <button type="submit" class="btn btn-success mt-4" id="confirmButton">Submit Selected Seats</button>
     </form>
 </div>
 {% endblock content %}

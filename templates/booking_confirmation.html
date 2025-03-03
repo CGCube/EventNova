@@ -1,0 +1,31 @@
+{% if isLoggedIn %}
+    {% extends 'base/header_footer_loggedin.html' %}
+{% else %}
+    {% extends 'base/header_footer.html' %}
+{% endif %}
+
+{% block page_title %}Booking Confirmation{% endblock page_title %}
+
+{% set page_style = url_for('static', filename='styles/booking-confirmation.css') %}
+{% set page_script = url_for('static', filename='scripts/booking-confirmation.js') %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">Booking Confirmation</h1>
+    <table class="table table-bordered mt-4">
+        <tr>
+            <th class="text-center">Seats</th>
+            <td class="text-center">{{ seats }}</td>
+        </tr>
+        <tr>
+            <th class="text-center">Price per Seat</th>
+            <td class="text-center">{{ price_per_seat }}</td>
+        </tr>
+        <tr>
+            <th class="text-center">Total Amount</th>
+            <td class="text-center">{{ total_amount }}</td>
+        </tr>
+    </table>
+    <button class="btn btn-primary mt-4" id="sendPayment">Send Payment Details</button>
+</div>
+{% endblock content %}

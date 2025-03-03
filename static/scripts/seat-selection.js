@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const seatCheckboxes = document.querySelectorAll('.btn-check');
-    const confirmButton = document.querySelector('.btn-success');
+    const confirmButton = document.querySelector('#confirmButton');
 
     // Add event listener for seat selection
     seatCheckboxes.forEach(checkbox => {
@@ -23,15 +23,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateConfirmButton() {
         const selectedSeats = document.querySelectorAll('.btn-check:checked');
-        confirmButton.disabled = selectedSeats.length === 0;
+        console.log("Selected seats: ", selectedSeats.length); // Debugging line
     }
 
     // Add event listener for confirm button
     confirmButton.addEventListener('click', function(event) {
         event.preventDefault();
-        const selectedSeats = document.querySelectorAll('.btn-check:checked');
-        const seatNumbers = Array.from(selectedSeats).map(checkbox => checkbox.value);
-        alert('You have selected seats: ' + seatNumbers.join(', '));
-        // You can add code here to handle the seat selection confirmation (e.g., sending data to the server)
+        document.querySelector('#seatForm').submit();
     });
+
+    // Initial check for confirm button state
+    updateConfirmButton();
 });
