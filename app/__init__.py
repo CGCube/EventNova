@@ -6,6 +6,7 @@ db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
+    app.config['SECRET_KEY'] = 'your_secret_key_here'  # Add a secret key for session management
     app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqlconnector://{db_config['user']}:{db_config['password']}@{db_config['host']}/{db_config['database']}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 

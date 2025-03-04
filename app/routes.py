@@ -1,4 +1,10 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, flash, jsonify, session
+from app import db
+from app.models import Guest, Organizer  # Assuming you have a Guest and Organizer model
+import logging
+
+# Setting up logging
+logging.basicConfig(level=logging.DEBUG)
 
 shows = [
     {"id": 1, "title": "Show 1", "description": "Description for Show 1", "image": "https://picsum.photos/200/300", "booking_link": "#"},
@@ -6,8 +12,9 @@ shows = [
     # Add more shows as needed
 ]
 
-isLoggedIn = 0
-UserType = "organizer"
+isLoggedIn = False
+UserType = ""
+currentUser = None
 
 def generate_seat_labels(rows, cols):
     labels = []
@@ -103,3 +110,168 @@ def init_routes(app):
         price_per_seat = 15.0  # Example price per seat
         total_amount = price_per_seat * len(seat_list)
         return render_template('booking_confirmation.html', isLoggedIn=True, seats=seats, price_per_seat=price_per_seat, total_amount=total_amount)
+
+    @app.route('/submit_signup_guest', methods=['POST'])
+    def submit_signup_guest():
+        gname = request.form.get('gname')
+        gemail = request.form.get('gemail')
+        gpassword = request.form.get('gpassword')
+        gusername = request.form.get('gusername')
+        gphone = request.form.get('gphone')
+
+        # Perform server-side validation if necessary
+
+        # Create a new guest user and save to the database
+        new_guest = Guest(gname=gname, gemail=gemail, gpassword=gpassword, gusername=gusername, gphone=gphone)
+        db.session.add(new_guest)
+        db.session.commit()
+
+        # Flash a success message and redirect to login page
+        flash('Sign up successful! Please log in.', 'success')
+        return redirect(url_for('login'))
+
+    @app.route('/submit_signup_organizer', methods=['POST'])
+    def submit_signup_organizer():
+        oname = request.form.get('oname')
+        oemail = request.form.get('oemail')
+        opassword = request.form.get('opassword')
+        ousername = request.form.get('ousername')
+        ophone = request.form.get('ophone')
+        odescription = request.form.get('odescription')
+
+        # Perform server-side validation if necessary
+
+        # Create a new organizer user and save to the database
+        new_organizer = Organizer(oname=oname, oemail=oemail, opassword=opassword, ousername=ousername, ophone=ophone, odescription=odescription)
+        db.session.add(new_organizer)
+        db.session.commit()
+
+        # Flash a success message and redirect to login page
+        flash('Sign up successful! Please log in.', 'success')
+        return redirect(url_for('login'))
+
+    @app.route('/submit_login', methods=['POST'])
+    def submit_login():
+        global isLoggedIn, UserType, currentUser
+
+        email = request.form.get('email')
+        password = request.form.get('password')
+        user_type = request.form.get('user_type')
+
+        logging.debug(f"Login attempt with email: {email}, user_type: {user_type}")
+
+        if user_type == "Guest":
+            user = Guest.query.filter_by(gemail=email, gpassword=password).first()
+            logging.debug(f"Guest user found: {user}")
+            if user:
+                UserType = "guest"
+                currentUser = user.gusername
+        elif user_type == "Organizer":
+            user = Organizer.query.filter_by(oemail=email, opassword=password).first()
+            logging.debug(f"Organizer user found: {user}")
+            if user:
+                UserType = "organizer"
+                currentUser = user.ousername
+        else:
+            return jsonify({"success": False})
+
+        if user:
+            isLoggedIn = True
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False})
+
+    @app.route('/get_profile')
+    def get_profile():
+        global currentUser
+        if UserType == "guest":
+            user = Guest.query.filter_by(gusername=currentUser).first()
+        elif UserType == "organizer":
+            user = Organizer.query.filter_by(ousername=currentUser).first()
+        else:
+            return jsonify({"success": False})
+
+        if user:
+            profile = {
+                "name": user.gname if UserType == "guest" else user.oname,
+                "guest_id": user.gusername if UserType == "guest" else None,
+                "organizer_id": user.ousername if UserType == "organizer" else None,
+                "email": user.gemail if UserType == "guest" else user.oemail,
+                "phone": user.gphone if UserType == "guest" else user.ophone,
+                "description": user.odescription if UserType == "organizer" else None
+            }
+            return jsonify({"success": True, "profile": profile})
+        else:
+            return jsonify({"success": False})
+
+    @app.route('/update_profile', methods=['POST'])
+    def update_profile():
+        global currentUser
+        data = request.json
+        if UserType == "guest":
+            user = Guest.query.filter_by(gusername=currentUser).first()
+            if user:
+                user.gname = data["name"]
+                user.gemail = data["email"]
+                user.gphone = data["phone"]
+        elif UserType == "organizer":
+            user = Organizer.query.filter_by(ousername=currentUser).first()
+            if user:
+                user.oname = data["name"]
+                user.oemail = data["email"]
+                user.ophone = data["phone"]
+                user.odescription = data["description"]
+        else:
+            return jsonify({"success": False})
+
+        if user:
+            db.session.commit()
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False})
+
+    @app.route('/change_password', methods=['POST'])
+    def change_password():
+        global currentUser
+        data = request.json
+        current_password = data["current_password"]
+        new_password = data["new_password"]
+        confirm_password = data["confirm_password"]
+
+        if new_password != confirm_password:
+            return jsonify({"success": False, "message": "New passwords do not match."})
+
+        if UserType == "guest":
+            user = Guest.query.filter_by(gusername=currentUser, gpassword=current_password).first()
+            if user:
+                user.gpassword = new_password
+        elif UserType == "organizer":
+            user = Organizer.query.filter_by(ousername=currentUser, opassword=current_password).first()
+            if user:
+                user.opassword = new_password
+        else:
+            return jsonify({"success": False})
+
+        if user:
+            db.session.commit()
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "message": "Current password is incorrect."})
+
+    @app.route('/logout', methods=['POST'])
+    def logout():
+        global isLoggedIn, UserType, currentUser
+        isLoggedIn = False
+        UserType = ""
+        currentUser = None
+        return jsonify({"success": True})
+
+    @app.route('/get_order_history')
+    def get_order_history():
+        # This is a placeholder implementation. Replace it with your actual order fetching logic.
+        orders = [
+            {"type": "Movie", "name": "Avengers: Endgame", "date": "2023-01-15"},
+            {"type": "Event", "name": "Music Concert", "date": "2023-03-10"},
+            {"type": "Show", "name": "Comedy Night", "date": "2023-04-05"}
+        ]
+        return jsonify({"success": True, "orders": orders})

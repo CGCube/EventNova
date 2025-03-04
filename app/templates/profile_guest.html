@@ -25,7 +25,7 @@
                             <a class="nav-link" href="#order-history-section">Order History</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Log Out</a>
+                            <a class="nav-link" href="/logout" id="logoutBtn">Log Out</a>
                         </li>
                     </ul>
                 </div>
@@ -40,19 +40,19 @@
                     <form id="profile-form">
                         <div class="mb-3">
                             <label for="name" class="form-label">Full Name</label>
-                            <input type="text" class="form-control" id="name" value="John Doe" readonly>
+                            <input type="text" class="form-control" id="name" name="name" readonly>
                         </div>
                         <div class="mb-3">
                             <label for="guest-id" class="form-label">Guest ID</label>
-                            <input type="text" class="form-control" id="guest-id" value="GUEST123" readonly>
+                            <input type="text" class="form-control" id="guest-id" name="guest_id" readonly>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" value="johndoe@example.com" readonly>
+                            <input type="email" class="form-control" id="email" name="email" readonly>
                         </div>
                         <div class="mb-3">
                             <label for="phone" class="form-label">Phone Number</label>
-                            <input type="text" class="form-control" id="phone" value="+1234567890" readonly>
+                            <input type="text" class="form-control" id="phone" name="phone" readonly>
                         </div>
                         <button type="button" class="btn btn-outline-primary custom-btn" id="editProfileBtn">Edit Profile</button>
                         <button type="submit" class="btn btn-primary custom-btn" id="submitProfileBtn" style="display:none;">Save</button>
@@ -67,19 +67,19 @@
                     <form id="change-password-form">
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" value="JohnDoe" readonly>
+                            <input type="text" class="form-control" id="username" name="username" readonly>
                         </div>
                         <div class="mb-3">
                             <label for="current-password" class="form-label">Current Password</label>
-                            <input type="password" class="form-control" id="current-password" readonly>
+                            <input type="password" class="form-control" id="current-password" name="current_password" readonly>
                         </div>
                         <div id="new-password-fields" class="mb-3" style="display:none;">
                             <label for="new-password" class="form-label">New Password</label>
-                            <input type="password" class="form-control" id="new-password">
+                            <input type="password" class="form-control" id="new-password" name="new_password">
                         </div>
                         <div id="confirm-password-fields" class="mb-3" style="display:none;">
                             <label for="confirm-password" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="confirm-password">
+                            <input type="password" class="form-control" id="confirm-password" name="confirm_password">
                         </div>
                         <button type="button" class="btn btn-outline-warning custom-btn" id="changePasswordBtn">Change Password</button>
                         <button type="submit" class="btn btn-primary custom-btn" style="display:none;" id="submitPasswordBtn">Submit</button>
@@ -91,16 +91,8 @@
             <div class="card shadow-sm mb-4" id="order-history-section">
                 <div class="card-body">
                     <h5 class="card-title">Order History</h5>
-                    <ul class="list-group">
-                        <li class="list-group-item">
-                            <strong>Movie:</strong> Avengers: Endgame | <strong>Date:</strong> 2023-01-15
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Event:</strong> Music Concert | <strong>Date:</strong> 2023-03-10
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Show:</strong> Comedy Night | <strong>Date:</strong> 2023-04-05
-                        </li>
+                    <ul class="list-group" id="order-history-list">
+                        <!-- Order history items will be dynamically populated here -->
                     </ul>
                 </div>
             </div>

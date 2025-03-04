@@ -14,7 +14,7 @@
             </div>
             <!-- Form Column -->
             <div class="col-md-6">
-                <form id="loginForm">
+                <form action="/submit_login" method="POST" id="loginForm">
                     <!-- Heading and Dropdown beside each other -->
                     <div class="login-header mb-3">
                         <h2 class="me-3">Login</h2>
@@ -26,14 +26,14 @@
                               <li><a class="dropdown-item" href="#" data-value="Guest">Guest</a></li>
                               <li><a class="dropdown-item" href="#" data-value="Organizer">Organizer</a></li>
                             </ul>
-                            <input type="hidden" id="dropdownSelection" name="dropdownSelection" required>
+                            <input type="hidden" id="dropdownSelection" name="user_type" required>
                         </div>
                     </div>
                     <div class="mb-3 pt-3">
-                        <input type="email" class="form-control" id="email" placeholder="Email" required>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
                     </div>
                     <div class="mb-3">
-                        <input type="password" class="form-control" id="password" placeholder="Password" required>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
                     </div>
                     <button type="submit" class="btn btn-secondary mt-4">Login</button>
                 </form>

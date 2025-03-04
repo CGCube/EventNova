@@ -25,7 +25,7 @@
                             <a class="nav-link" href="#events-section">Events</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Log Out</a>
+                            <a class="nav-link" href="#" id="logoutBtn">Log Out</a>
                         </li>
                     </ul>
                 </div>
@@ -40,23 +40,23 @@
                     <form id="profile-form">
                         <div class="mb-3">
                             <label for="organizer-id" class="form-label">Organizer ID</label>
-                            <input type="text" class="form-control" id="organizer-id" value="ORG123" readonly>
+                            <input type="text" class="form-control" id="organizer-id" name="organizer_id" readonly>
                         </div>
                         <div class="mb-3">
                             <label for="organizer-name" class="form-label">Organizer Name</label>
-                            <input type="text" class="form-control" id="organizer-name" value="John Doe" readonly>
+                            <input type="text" class="form-control" id="organizer-name" name="name" readonly>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" value="johndoe@example.com" readonly>
+                            <input type="email" class="form-control" id="email" name="email" readonly>
                         </div>
                         <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control" id="description" rows="3" readonly>Description of the organizer.</textarea>
+                            <textarea class="form-control" id="description" name="description" rows="3" readonly></textarea>
                         </div>
                         <div class="mb-3">
                             <label for="phone" class="form-label">Phone Number</label>
-                            <input type="text" class="form-control" id="phone" value="+1234567890" readonly>
+                            <input type="text" class="form-control" id="phone" name="phone" readonly>
                         </div>
                         <button type="button" class="btn btn-outline-primary custom-btn" id="editProfileBtn">Edit Profile</button>
                         <button type="submit" class="btn btn-primary custom-btn" id="submitProfileBtn" style="display:none;">Save</button>
@@ -71,19 +71,19 @@
                     <form id="change-password-form">
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" value="JohnDoe" readonly>
+                            <input type="text" class="form-control" id="username" name="username" readonly>
                         </div>
                         <div class="mb-3">
                             <label for="current-password" class="form-label">Current Password</label>
-                            <input type="password" class="form-control" id="current-password" readonly>
+                            <input type="password" class="form-control" id="current-password" name="current_password">
                         </div>
                         <div id="new-password-fields" class="mb-3" style="display:none;">
                             <label for="new-password" class="form-label">New Password</label>
-                            <input type="password" class="form-control" id="new-password">
+                            <input type="password" class="form-control" id="new-password" name="new_password">
                         </div>
                         <div id="confirm-password-fields" class="mb-3" style="display:none;">
                             <label for="confirm-password" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="confirm-password">
+                            <input type="password" class="form-control" id="confirm-password" name="confirm_password">
                         </div>
                         <button type="button" class="btn btn-outline-warning custom-btn" id="changePasswordBtn">Change Password</button>
                         <button type="submit" class="btn btn-primary custom-btn" style="display:none;" id="submitPasswordBtn">Submit</button>
