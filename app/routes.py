@@ -38,8 +38,9 @@ def init_routes(app):
         random.shuffle(events)  # Shuffle the list of movies
         return render_template('movies.html', events=events, isLoggedIn=isLoggedIn)
 
-    @app.route('/view_description/<int:event_id>')
-    def view_description(event_id):
+    @app.route('/view_description')
+    def view_description():
+        event_id = request.args.get('event_id')
         event = Event.query.get(event_id)
         return render_template('view_description.html', event=event, isLoggedIn=isLoggedIn)
 
@@ -164,6 +165,10 @@ def init_routes(app):
             return jsonify({"success": True})
         else:
             return jsonify({"success": False})
+
+    @app.route('/login')
+    def login():
+        return render_template('login.html')
 
     @app.route('/get_profile')
     def get_profile():
@@ -306,4 +311,25 @@ def init_routes(app):
         }
         return jsonify({"success": True, "events": events_list})
 
-    # Removed TMDB-related routes
+    @app.route('/api/event/<int:event_id>')
+    def api_event(event_id):
+        event = Event.query.get(event_id)
+        if event:
+            event_data = {
+                "event_id": event.event_id,
+                "organizer_id": event.organizer_id,
+                "event_name": event.event_name,
+                "event_thumbnail": event.event_thumbnail,
+                "event_type": event.event_type,
+                "genre": event.genre,
+                "date": event.date.strftime('%Y-%m-%d'),
+                "time": event.time.strftime('%H:%M:%S'),
+                "venue": event.venue,
+                "city": event.city,
+                "price": float(event.price),
+                "available_seats": event.available_seats,
+                "event_description": event.event_description
+            }
+            return jsonify({"success": True, "event": event_data})
+        else:
+            return jsonify({"success": False, "status_message": "Event not found"})

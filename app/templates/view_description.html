@@ -6,27 +6,36 @@
 
 {% block page_title %}Description{% endblock page_title %}
 
-{% set page_style = 'styles/view_description.css' %} <!-- Dynamically set the CSS file -->
-{% set page_script = 'scripts/view_description.js' %} <!-- Dynamically set the JS file -->
+{% set page_style = 'styles/view-description.css' %} <!-- Dynamically set the CSS file -->
+{% set page_script = 'scripts/view-description.js' %} <!-- Dynamically set the JS file -->
 
 {% block content %}
 <div class="container mt-4">
     <div class="row mb-4">
         <div class="col">
-            <h2 class="d-inline">Sample Show/Event/Movie Title</h2>
+            <h2 class="d-inline event-title">Sample Show/Event/Movie Title</h2>
             <hr class="d-inline" style="width: 50px; height: 2px; background-color: #343a40; border: none;">
         </div>
     </div>
     <div class="row">
         <div class="col-md-6">
-            <img src="https://picsum.photos/600/400" class="img-fluid" alt="Sample Show/Event/Movie Title">
+            <img src="https://picsum.photos/600/400" class="img-fluid event-image" alt="Sample Show/Event/Movie Title">
         </div>
         <div class="col-md-6">
             <h3>Description</h3>
-            <p>This is a sample description for the show/event/movie. It contains details about the show/event/movie, including its features, highlights, and any other relevant information.</p>
+            <p class="event-description">This is a sample description for the show/event/movie. It contains details about the show/event/movie, including its features, highlights, and any other relevant information.</p>
             <h4>Genre</h4>
-            <p>Action, Drama</p>
-            <a href="select_seats" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
+            <p class="event-genre">Action, Drama</p>
+            <h4>Date and Time</h4>
+            <p class="event-date-time">March 6, 2025, 7:00 PM</p>
+            <h4>Venue</h4>
+            <p class="event-venue">Sample Venue</p>
+            <h4>City</h4>
+            <p class="event-city">Sample City</p>
+            <button class="btn book-ticket-btn" style="background-color: #212529; color: white;" {% if not isLoggedIn %}disabled{% endif %}>Book Ticket</button>
+            {% if not isLoggedIn %}
+                <p>Please login to book your tickets.</p>
+            {% endif %}
         </div>
     </div>
     <div class="row mt-4">
@@ -55,7 +64,7 @@
                     <form id="review-form">
                         <div class="mb-3">
                             <label for="rating" class="form-label">Rating (0-5)</label>
-                            <select class="form-select" id="rating" required>
+                            <select class="form-select" id="rating" required {% if not isLoggedIn %}disabled{% endif %}>
                                 <option value="" disabled selected>Select a rating</option>
                                 <option value="0">0</option>
                                 <option value="1">1</option>
@@ -67,9 +76,9 @@
                         </div>
                         <div class="mb-3">
                             <label for="comment" class="form-label">Comment</label>
-                            <textarea class="form-control" id="comment" rows="3" required></textarea>
+                            <textarea class="form-control" id="comment" rows="3" required {% if not isLoggedIn %}disabled{% endif %}></textarea>
                         </div>
-                        <button type="submit" class="btn" style="background-color: #212529; color: white;">Submit</button>
+                        <button type="submit" class="btn" style="background-color: #212529; color: white;" {% if not isLoggedIn %}disabled{% endif %}>Submit</button>
                     </form>
                 </div>
             </div>

@@ -31,9 +31,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (imgElement && titleElement && textElement && btnElement) {
                         imgElement.src = movie.event_thumbnail;
                         imgElement.alt = movie.event_name;
-                        titleElement.textContent = movie.event_name;
+                        titleElement.textContent = truncateText(movie.event_name, 25); // Truncate to 25 characters
                         textElement.textContent = truncateText(movie.event_description, 50); // Truncate to 50 characters
-                        btnElement.href = `/view_description/${movie.event_id}`;
+                        btnElement.href = `/view_description?event_id=${movie.event_id}`;
                     } else {
                         console.warn('Some elements are missing in the card structure.');
                     }
@@ -52,9 +52,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (imgElement && titleElement && textElement && btnElement) {
                         imgElement.src = show.event_thumbnail;
                         imgElement.alt = show.event_name;
-                        titleElement.textContent = show.event_name;
+                        titleElement.textContent = truncateText(show.event_name, 25); // Truncate to 25 characters
                         textElement.textContent = truncateText(show.event_description, 50); // Truncate to 50 characters
-                        btnElement.href = `/view_description/${show.event_id}`;
+                        btnElement.href = `/view_description?event_id=${show.event_id}`;
                     } else {
                         console.warn('Some elements are missing in the card structure.');
                     }
