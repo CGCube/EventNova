@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, jsonify, session
+from flask import render_template, request, redirect, url_for, flash, jsonify, session, current_app
 from app import db
 from app.models import Guest, Organizer  # Assuming you have a Guest and Organizer model
 import logging
@@ -101,7 +101,7 @@ def init_routes(app):
         txn_id = "1234567890"
         booking_date = "2025-03-03"
         booking_time = "19:07:33"
-        return render_template('booking_summary.html', isLoggedIn=True, payment_success=payment_success, event_name=event_name, location=location, date=date, time=time, seats=seats, txn_id=txn_id, booking_date=booking_date, booking_time=booking_time)
+        return render_template('booking_summary.html', isLoggedIn=True, payment_success=payment_success, event_name=event_name, location=location, date=date, time=time, seats=seats, txn_id=txn_id)
 
     @app.route('/booking_confirmation')
     def booking_confirmation():
@@ -275,3 +275,24 @@ def init_routes(app):
             {"type": "Show", "name": "Comedy Night", "date": "2023-04-05"}
         ]
         return jsonify({"success": True, "orders": orders})
+
+    @app.route('/search_movie')
+    def search_movie():
+        query = request.args.get('query')
+        if query:
+            response = current_app.tmdb_client.search_movie(query)
+            movies = response.get('results', [])
+            return render_template('search_results.html', movies=movies)
+        return render_template('search_movie.html')
+
+    @app.route('/movie/<int:movie_id>')
+    def movie_details(movie_id):
+        response = current_app.tmdb_client.get_movie_details(movie_id)
+        return render_template('movie_details.html', movie=response)
+
+    @app.route('/api/movies')
+    def api_movies():
+        # Fetching movies data from TMDB
+        response = current_app.tmdb_client.search_movie('popular')
+        movies = response.get('results', [])
+        return jsonify({'movies': movies})

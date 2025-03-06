@@ -1,22 +1,28 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from app.config import db_config
+from .config import Config
+from .tmdb_client import TMDBClient
 
 db = SQLAlchemy()
 
-def create_app():
+def create_app(config_class=Config):
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'your_secret_key_here'  # Add a secret key for session management
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqlconnector://{db_config['user']}:{db_config['password']}@{db_config['host']}/{db_config['database']}"
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config.from_object(config_class)
+
+    # Initialize TMDB Client
+    tmdb_client = TMDBClient(
+        app.config['TMDB_API_KEY'],
+        app.config['TMDB_READ_ACCESS_TOKEN']
+    )
+    app.tmdb_client = tmdb_client
 
     db.init_app(app)
 
     with app.app_context():
-        from app import models
+        from . import models
         db.create_all()
 
-        from app.routes import init_routes
+        from .routes import init_routes
         init_routes(app)
 
     return app
