@@ -1,8 +1,9 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, session, current_app
 from app import db
-from app.models import Guest, Organizer, Event  # Added Event model
+from app.models import Guest, Organizer, Event, Review  # Added Review model
 import logging
 import random  # Added import for random
+from datetime import datetime
 
 # Setting up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -42,14 +43,40 @@ def init_routes(app):
     def view_description():
         event_id = request.args.get('event_id')
         event = Event.query.get(event_id)
-        return render_template('view_description.html', event=event, isLoggedIn=isLoggedIn)
+        reviews = Review.query.filter_by(event_id=event_id).all()
+        return render_template('view_description.html', event=event, reviews=reviews, isLoggedIn=isLoggedIn)
+
+    @app.route('/submit_review', methods=['POST'])
+    def submit_review():
+        if not isLoggedIn:
+            return jsonify({"success": False, "message": "User not logged in"})
+
+        event_id = request.form.get('event_id')
+        rating = request.form.get('rating')
+        review_text = request.form.get('comment')
+        guest = Guest.query.filter_by(gusername=currentUser).first()
+
+        if not guest:
+            return jsonify({"success": False, "message": "Guest not found"})
+
+        new_review = Review(
+            event_id=event_id,
+            guest_id=guest.guest_id,
+            rating=rating,
+            review_text=review_text,
+            review_timestamp=datetime.now()
+        )
+        db.session.add(new_review)
+        db.session.commit()
+
+        return jsonify({"success": True, "message": "Review submitted successfully"})
 
     @app.route('/select_seats', methods=['GET', 'POST'])
     def select_seats():
         if request.method == 'POST':
             selected_seats = request.form.getlist('seats')
             return redirect(url_for('booking_confirmation', seats=','.join(selected_seats)))
-        
+
         seat_labels = generate_seat_labels(10, 20)
         selected_seats = []  # Example selected seats
         return render_template('seat_selection.html', isLoggedIn=True, seat_labels=seat_labels, selected_seats=selected_seats)

@@ -50,19 +50,45 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const rating = document.getElementById('rating').value;
         const comment = document.getElementById('comment').value;
+        const eventId = urlParams.get('event_id');
 
-        const reviewElement = document.createElement('div');
-        reviewElement.classList.add('card', 'mb-3');
-        reviewElement.innerHTML = `
-            <div class="card-body">
-                <h5 class="card-title">Rating: ${rating}</h5>
-                <p class="card-text">${comment}</p>
-                <p class="card-text"><small class="text-muted">Just now</small></p>
-            </div>
-        `;
+        fetch('/submit_review', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                event_id: eventId,
+                rating: rating,
+                comment: comment
+            })
+        })
+        .then(response => response.text())  // Changed to .text() to handle HTML response
+        .then(data => {
+            try {
+                data = JSON.parse(data);  // Attempt to parse JSON
+            } catch (e) {
+                console.error('Error parsing JSON:', e);
+                throw new Error('Invalid JSON response');
+            }
 
-        reviewsContainer.prepend(reviewElement);
+            if (data.success) {
+                const reviewElement = document.createElement('div');
+                reviewElement.classList.add('card', 'mb-3');
+                reviewElement.innerHTML = `
+                    <div class="card-body">
+                        <h5 class="card-title">Rating: ${rating}</h5>
+                        <p class="card-text">${comment}</p>
+                        <p class="card-text"><small class="text-muted">Just now</small></p>
+                    </div>
+                `;
 
-        reviewForm.reset();
+                reviewsContainer.prepend(reviewElement);
+                reviewForm.reset();
+            } else {
+                console.error('Error submitting review:', data.message);
+            }
+        })
+        .catch(error => console.error('Error submitting review:', error));
     });
 });

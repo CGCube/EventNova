@@ -13,25 +13,25 @@
 <div class="container mt-4">
     <div class="row mb-4">
         <div class="col">
-            <h2 class="d-inline event-title">Sample Show/Event/Movie Title</h2>
+            <h2 class="d-inline event-title">{{ event.event_name }}</h2>
             <hr class="d-inline" style="width: 50px; height: 2px; background-color: #343a40; border: none;">
         </div>
     </div>
     <div class="row">
         <div class="col-md-6">
-            <img src="https://picsum.photos/600/400" class="img-fluid event-image" alt="Sample Show/Event/Movie Title">
+            <img src="{{ event.event_thumbnail }}" class="img-fluid event-image" alt="{{ event.event_name }}">
         </div>
         <div class="col-md-6">
             <h3>Description</h3>
-            <p class="event-description">This is a sample description for the show/event/movie. It contains details about the show/event/movie, including its features, highlights, and any other relevant information.</p>
+            <p class="event-description">{{ event.event_description }}</p>
             <h4>Genre</h4>
-            <p class="event-genre">Action, Drama</p>
+            <p class="event-genre">{{ event.genre }}</p>
             <h4>Date and Time</h4>
-            <p class="event-date-time">March 6, 2025, 7:00 PM</p>
+            <p class="event-date-time">{{ event.date }} {{ event.time }}</p>
             <h4>Venue</h4>
-            <p class="event-venue">Sample Venue</p>
+            <p class="event-venue">{{ event.venue }}</p>
             <h4>City</h4>
-            <p class="event-city">Sample City</p>
+            <p class="event-city">{{ event.city }}</p>
             <button class="btn book-ticket-btn" style="background-color: #212529; color: white;" {% if not isLoggedIn %}disabled{% endif %}>Book Ticket</button>
             {% if not isLoggedIn %}
                 <p>Please login to book your tickets.</p>
@@ -42,29 +42,28 @@
         <div class="col">
             <h3>Reviews</h3>
             <div id="reviews-container">
-                <!-- Sample reviews for demonstration -->
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Rating: 5</h5>
-                        <p class="card-text">This is a sample review. The show/event/movie was amazing!</p>
-                        <p class="card-text"><small class="text-muted">Posted on 2025-02-20</small></p>
-                    </div>
-                </div>
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Rating: 4</h5>
-                        <p class="card-text">I really enjoyed this show/event/movie. Highly recommend it!</p>
-                        <p class="card-text"><small class="text-muted">Posted on 2025-02-21</small></p>
-                    </div>
-                </div>
+                {% if reviews %}
+                    {% for review in reviews %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Rating: {{ review.rating }}</h5>
+                                <p class="card-text">{{ review.review_text }}</p>
+                                <p class="card-text"><small class="text-muted">Posted on {{ review.review_timestamp }}</small></p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No reviews yet.</p>
+                {% endif %}
             </div>
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Leave a Review</h5>
-                    <form id="review-form">
+                    <form id="review-form" action="/submit_review" method="POST">
+                        <input type="hidden" name="event_id" value="{{ event.event_id }}">
                         <div class="mb-3">
                             <label for="rating" class="form-label">Rating (0-5)</label>
-                            <select class="form-select" id="rating" required {% if not isLoggedIn %}disabled{% endif %}>
+                            <select class="form-select" id="rating" name="rating" required {% if not isLoggedIn %}disabled{% endif %}>
                                 <option value="" disabled selected>Select a rating</option>
                                 <option value="0">0</option>
                                 <option value="1">1</option>
@@ -76,7 +75,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="comment" class="form-label">Comment</label>
-                            <textarea class="form-control" id="comment" rows="3" required {% if not isLoggedIn %}disabled{% endif %}></textarea>
+                            <textarea class="form-control" id="comment" name="comment" rows="3" required {% if not isLoggedIn %}disabled{% endif %}></textarea>
                         </div>
                         <button type="submit" class="btn" style="background-color: #212529; color: white;" {% if not isLoggedIn %}disabled{% endif %}>Submit</button>
                     </form>
