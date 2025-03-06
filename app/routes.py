@@ -1,16 +1,11 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, session, current_app
 from app import db
-from app.models import Guest, Organizer  # Assuming you have a Guest and Organizer model
+from app.models import Guest, Organizer, Event  # Added Event model
 import logging
+import random  # Added import for random
 
 # Setting up logging
 logging.basicConfig(level=logging.DEBUG)
-
-shows = [
-    {"id": 1, "title": "Show 1", "description": "Description for Show 1", "image": "https://picsum.photos/200/300", "booking_link": "#"},
-    {"id": 2, "title": "Show 2", "description": "Description for Show 2", "image": "https://picsum.photos/200/300", "booking_link": "#"},
-    # Add more shows as needed
-]
 
 isLoggedIn = False
 UserType = ""
@@ -31,33 +26,22 @@ def init_routes(app):
     def index():
         return render_template('home.html', isLoggedIn=isLoggedIn)
 
-    @app.route('/login')
-    def login():
-        return render_template('login.html')
-
-    @app.route('/signup_select')
-    def signup_select():
-        return render_template('signup_select.html')
-
-    @app.route('/signup_guest')
-    def signup_guest():
-        return render_template('signup_guest.html')
-
-    @app.route('/signup_organizer')
-    def signup_organizer():
-        return render_template('signup_organizer.html')
-
     @app.route('/shows')
     def shows():
-        return render_template('shows.html', isLoggedIn=isLoggedIn)
+        events = Event.query.filter_by(event_type='show').all()
+        random.shuffle(events)  # Shuffle the list of shows
+        return render_template('shows.html', events=events, isLoggedIn=isLoggedIn)
 
     @app.route('/movies')
     def movies():
-        return render_template('movies.html', isLoggedIn=isLoggedIn)
+        events = Event.query.filter_by(event_type='movie').all()
+        random.shuffle(events)  # Shuffle the list of movies
+        return render_template('movies.html', events=events, isLoggedIn=isLoggedIn)
 
-    @app.route('/view_description')
-    def view_description():
-        return render_template('view_description.html', isLoggedIn=isLoggedIn)
+    @app.route('/view_description/<int:event_id>')
+    def view_description(event_id):
+        event = Event.query.get(event_id)
+        return render_template('view_description.html', event=event, isLoggedIn=isLoggedIn)
 
     @app.route('/select_seats', methods=['GET', 'POST'])
     def select_seats():
@@ -276,23 +260,50 @@ def init_routes(app):
         ]
         return jsonify({"success": True, "orders": orders})
 
-    @app.route('/search_movie')
-    def search_movie():
-        query = request.args.get('query')
-        if query:
-            response = current_app.tmdb_client.search_movie(query)
-            movies = response.get('results', [])
-            return render_template('search_results.html', movies=movies)
-        return render_template('search_movie.html')
+    @app.route('/api/events')
+    def api_events():
+        movies = Event.query.filter_by(event_type='movie').all()
+        shows = Event.query.filter_by(event_type='show').all()
+        
+        random.shuffle(movies)
+        random.shuffle(shows)
+        
+        events_list = {
+            "movies": [
+                {
+                    "event_id": event.event_id,
+                    "organizer_id": event.organizer_id,
+                    "event_name": event.event_name,
+                    "event_thumbnail": event.event_thumbnail,
+                    "event_type": event.event_type,
+                    "genre": event.genre,
+                    "date": event.date.strftime('%Y-%m-%d'),
+                    "time": event.time.strftime('%H:%M:%S'),
+                    "venue": event.venue,
+                    "city": event.city,
+                    "price": float(event.price),
+                    "available_seats": event.available_seats,
+                    "event_description": event.event_description
+                } for event in movies
+            ],
+            "shows": [
+                {
+                    "event_id": event.event_id,
+                    "organizer_id": event.organizer_id,
+                    "event_name": event.event_name,
+                    "event_thumbnail": event.event_thumbnail,
+                    "event_type": event.event_type,
+                    "genre": event.genre,
+                    "date": event.date.strftime('%Y-%m-%d'),
+                    "time": event.time.strftime('%H:%M:%S'),
+                    "venue": event.venue,
+                    "city": event.city,
+                    "price": float(event.price),
+                    "available_seats": event.available_seats,
+                    "event_description": event.event_description
+                } for event in shows
+            ]
+        }
+        return jsonify({"success": True, "events": events_list})
 
-    @app.route('/movie/<int:movie_id>')
-    def movie_details(movie_id):
-        response = current_app.tmdb_client.get_movie_details(movie_id)
-        return render_template('movie_details.html', movie=response)
-
-    @app.route('/api/movies')
-    def api_movies():
-        # Fetching movies data from TMDB
-        response = current_app.tmdb_client.search_movie('popular')
-        movies = response.get('results', [])
-        return jsonify({'movies': movies})
+    # Removed TMDB-related routes

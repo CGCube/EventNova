@@ -26,12 +26,14 @@ class Event(db.Model):
     event_name = db.Column(db.String(100), nullable=False)
     event_thumbnail = db.Column(db.String(500), nullable=False)
     event_type = db.Column(db.String(50), nullable=False)
+    genre = db.Column(db.String(50), nullable=False)
     date = db.Column(db.Date, nullable=False)
     time = db.Column(db.Time, nullable=False)
     venue = db.Column(db.String(100), nullable=False)
     city = db.Column(db.String(15), nullable=False)
     price = db.Column(db.Numeric(10, 2), nullable=False)
     available_seats = db.Column(db.Integer, nullable=False)
+    event_description = db.Column(db.Text, nullable=False)
 
 class Booking(db.Model):
     __tablename__ = 'bookings'

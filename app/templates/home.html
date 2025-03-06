@@ -19,10 +19,10 @@
                 <a href="#" class="float-end" style="color: #343a40;">Show All</a>
             </div>
         </div>
-        <div class="row">
+        <div class="row" id="movie-cards">
             {% for item_index in range(4) %}
                 <div class="col-md-3">
-                    <div class="card mb-4">
+                    <div class="card mb-4 movie-card">
                         <img src="https://picsum.photos/200/300?random={{ item_index + 1 }}" class="card-img-top" alt="Movie {{ item_index + 1 }}">
                         <div class="card-body">
                             <h5 class="card-title">Movie {{ item_index + 1 }}</h5>
@@ -42,10 +42,10 @@
                 <a href="#" class="float-end" style="color: #343a40;">Show All</a>
             </div>
         </div>
-        <div class="row">
+        <div class="row" id="event-cards">
             {% for item_index in range(4) %}
                 <div class="col-md-3">
-                    <div class="card mb-4">
+                    <div class="card mb-4 event-card">
                         <img src="https://picsum.photos/200/300?random={{ item_index + 5 }}" class="card-img-top" alt="Event {{ item_index + 1 }}">
                         <div class="card-body">
                             <h5 class="card-title">Event {{ item_index + 1 }}</h5>
@@ -65,10 +65,10 @@
                 <a href="#" class="float-end" style="color: #343a40;">Show All</a>
             </div>
         </div>
-        <div class="row">
+        <div class="row" id="show-cards">
             {% for item_index in range(4) %}
                 <div class="col-md-3">
-                    <div class="card mb-4">
+                    <div class="card mb-4 show-card">
                         <img src="https://picsum.photos/200/300?random={{ item_index + 9 }}" class="card-img-top" alt="Show {{ item_index + 1 }}">
                         <div class="card-body">
                             <h5 class="card-title">Show {{ item_index + 1 }}</h5>

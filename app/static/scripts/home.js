@@ -4,20 +4,12 @@ function selectLocation(location) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Document loaded. Fetching popular movies...');
-    fetch('/api/config') // Fetch configuration from the server
+    console.log('Document loaded. Fetching events...');
+    fetch('/api/events') // Fetch events from the server
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-            return response.json();
-        })
-        .then(config => {
-            const apiKey = config.TMDB_API_KEY;
-            return fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&region=IN&include_adult=false`);
-        })
-        .then(response => {
-            console.log('API response received');
             return response.json();
         })
         .then(data => {
@@ -25,21 +17,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(data.status_message);
             }
             console.log('Data received:', data);
-            // Genres to exclude
-            const excludedGenres = ['Horror', 'Murder', 'Thriller'];
+            const { movies, shows } = data.events;
 
-            // Languages to include
-            const includedLanguages = ['hi', 'en', 'te', 'mr'];
-
-            // Filter the movie data
-            const movies = data.results
-                .filter(movie => 
-                    !movie.genre_ids.some(genre => excludedGenres.includes(genre)) &&
-                    includedLanguages.includes(movie.original_language)
-                )
-                .sort(() => Math.random() - 0.5);
-
-            const movieCards = document.querySelectorAll('.card');
+            const movieCards = document.querySelectorAll('.movie-card');
             movies.forEach((movie, index) => {
                 if (index < movieCards.length) {
                     const movieCard = movieCards[index];
@@ -49,18 +29,39 @@ document.addEventListener('DOMContentLoaded', function() {
                     const btnElement = movieCard.querySelector('.btn');
                     
                     if (imgElement && titleElement && textElement && btnElement) {
-                        imgElement.src = `https://image.tmdb.org/t/p/w200${movie.poster_path}`;
-                        imgElement.alt = movie.title;
-                        titleElement.textContent = movie.title;
-                        textElement.textContent = truncateText(movie.overview, 50); // Truncate to 50 characters
-                        btnElement.href = `/movie/${movie.id}`;
+                        imgElement.src = movie.event_thumbnail;
+                        imgElement.alt = movie.event_name;
+                        titleElement.textContent = movie.event_name;
+                        textElement.textContent = truncateText(movie.event_description, 50); // Truncate to 50 characters
+                        btnElement.href = `/view_description/${movie.event_id}`;
+                    } else {
+                        console.warn('Some elements are missing in the card structure.');
+                    }
+                }
+            });
+
+            const showCards = document.querySelectorAll('.show-card');
+            shows.forEach((show, index) => {
+                if (index < showCards.length) {
+                    const showCard = showCards[index];
+                    const imgElement = showCard.querySelector('.card-img-top');
+                    const titleElement = showCard.querySelector('.card-title');
+                    const textElement = showCard.querySelector('.card-text');
+                    const btnElement = showCard.querySelector('.btn');
+                    
+                    if (imgElement && titleElement && textElement && btnElement) {
+                        imgElement.src = show.event_thumbnail;
+                        imgElement.alt = show.event_name;
+                        titleElement.textContent = show.event_name;
+                        textElement.textContent = truncateText(show.event_description, 50); // Truncate to 50 characters
+                        btnElement.href = `/view_description/${show.event_id}`;
                     } else {
                         console.warn('Some elements are missing in the card structure.');
                     }
                 }
             });
         })
-        .catch(error => console.error('Error fetching movies:', error));
+        .catch(error => console.error('Error fetching events:', error));
 });
 
 function truncateText(text, maxLength) {
