@@ -113,7 +113,7 @@ def init_routes(app):
         txn_id = "1234567890"
         booking_date = "2025-03-03"
         booking_time = "19:07:33"
-        return render_template('booking_summary.html', isLoggedIn=True, payment_success=payment_success, event_name=event_name, location=location, date=date, time=time, seats=seats, txn_id=txn_id)
+        return render_template('booking_summary.html', isLoggedIn=True, payment_success=payment_success, event_name=event_name, location=location, date=date, time=time, seats=seats, txn_id=txn_id, booking_date=booking_date, booking_time=booking_time)
 
     @app.route('/booking_confirmation')
     def booking_confirmation():
@@ -360,3 +360,27 @@ def init_routes(app):
             return jsonify({"success": True, "event": event_data})
         else:
             return jsonify({"success": False, "status_message": "Event not found"})
+
+    @app.route('/search_events', methods=['POST'])
+    def search_events():
+        query = request.form.get('query')
+        if query:
+            # Search for events that match the query
+            events = Event.query.filter(Event.event_name.ilike(f'%{query}%')).all()
+            event_list = [
+                {
+                    "event_id": event.event_id,
+                    "event_name": event.event_name,
+                    "event_description": event.event_description,
+                    "event_type": event.event_type,
+                    "thumbnail": event.event_thumbnail
+                }
+                for event in events
+            ]
+            return jsonify(events=event_list)
+        return jsonify(events=[])
+    
+    @app.route('/search_results')
+    def search_results():
+        query = request.args.get('query', '')
+        return render_template('search_result.html', query=query, isLoggedIn=isLoggedIn)
