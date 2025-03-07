@@ -32,7 +32,7 @@
             <p class="event-venue">{{ event.venue }}</p>
             <h4>City</h4>
             <p class="event-city">{{ event.city }}</p>
-            <button class="btn book-ticket-btn" style="background-color: #212529; color: white;" {% if not isLoggedIn %}disabled{% endif %}>Book Ticket</button>
+            <button href="/select_seats?event_id={{ event.event_id }}" class="btn book-ticket-btn" style="background-color: #212529; color: white;" {% if not isLoggedIn %}disabled{% endif %}>Book Ticket</button>
             {% if not isLoggedIn %}
                 <p>Please login to book your tickets.</p>
             {% endif %}
