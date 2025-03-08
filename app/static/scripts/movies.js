@@ -1,61 +1,58 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener('DOMContentLoaded', function () {
     const moviesContainer = document.getElementById('movies-container');
-    const loadingElement = document.getElementById('loading');
-    let page = 1;
-    let isLoading = false;
-    let hasMoreMovies = true;
+    const loadingIndicator = document.getElementById('loading');
+    let loading = false;
+    let movieIndex = 0;
+    let movies = [];
 
-    async function fetchMovies(page) {
-        if (isLoading || !hasMoreMovies) return;
-        isLoading = true;
-        loadingElement.style.display = 'block';
+    function loadMovies() {
+        if (loading || movieIndex >= movies.length) return;
+        loading = true;
+        loadingIndicator.style.display = 'block';
 
-        try {
-            // Simulating a fetch with static data for demonstration
-            const data = {
-                movies: Array.from({ length: 8 }, (_, i) => ({
-                    image: `https://picsum.photos/200/300?random=${(page - 1) * 8 + i + 1}`,
-                    title: `Movie ${(page - 1) * 8 + i + 1}`,
-                    description: `Description for Movie ${(page - 1) * 8 + i + 1}`,
-                    link: '#'
-                }))
-            };
+        const moviesToLoad = movies.slice(movieIndex, movieIndex + 8);
+        moviesToLoad.forEach(movie => {
+            const movieCard = document.createElement('div');
+            movieCard.className = 'col-md-3';
+            movieCard.innerHTML = `
+                <div class="card mb-4">
+                    <img src="${movie.event_thumbnail}" class="card-img-top" alt="${movie.event_name}">
+                    <div class="card-body">
+                        <h5 class="card-title">${movie.event_name}</h5>
+                        <p class="card-text">${movie.event_description}</p>
+                        <a href="/view_description?event_id=${movie.event_id}" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
+                    </div>
+                </div>
+            `;
+            moviesContainer.appendChild(movieCard);
+        });
 
-            if (data.movies.length === 0) {
-                hasMoreMovies = false;
-                loadingElement.textContent = 'No more movies';
+        movieIndex += 8;
+        loading = false;
+        if (movieIndex >= movies.length) {
+            loadingIndicator.textContent = 'No more movies to load.';
+        } else {
+            loadingIndicator.style.display = 'none';
+        }
+    }
+
+    fetch('/api/movies')
+        .then(response => response.json())
+        .then(data => {
+            if (data.movies) {
+                movies = data.movies;
+                loadMovies(); // Initial load
             } else {
-                data.movies.forEach(movie => {
-                    const movieElement = document.createElement('div');
-                    movieElement.classList.add('col-md-3');
-                    movieElement.innerHTML = `
-                        <div class="card mb-4">
-                            <img src="${movie.image}" class="card-img-top" alt="${movie.title}">
-                            <div class="card-body">
-                                <h5 class="card-title">${movie.title}</h5>
-                                <p class="card-text">${movie.description}</p>
-                                <a href="${movie.link}" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
-                            </div>
-                        </div>
-                    `;
-                    moviesContainer.appendChild(movieElement);
-                });
+                console.error('Unexpected response format:', data);
             }
-        } catch (error) {
-            console.error('Error fetching movies:', error);
-        }
+        })
+        .catch(error => {
+            console.error('Error loading movies:', error);
+        });
 
-        loadingElement.style.display = 'none';
-        isLoading = false;
-    }
-
-    function handleScroll() {
+    window.addEventListener('scroll', () => {
         if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
-            page++;
-            fetchMovies(page);
+            loadMovies();
         }
-    }
-
-    window.addEventListener('scroll', handleScroll);
-    fetchMovies(page);
+    });
 });

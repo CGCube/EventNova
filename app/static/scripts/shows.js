@@ -1,61 +1,58 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener('DOMContentLoaded', function () {
     const showsContainer = document.getElementById('shows-container');
-    const loadingElement = document.getElementById('loading');
-    let page = 1;
-    let isLoading = false;
-    let hasMoreShows = true;
+    const loadingIndicator = document.getElementById('loading');
+    let loading = false;
+    let showIndex = 0;
+    let shows = [];
 
-    async function fetchShows(page) {
-        if (isLoading || !hasMoreShows) return;
-        isLoading = true;
-        loadingElement.style.display = 'block';
+    function loadShows() {
+        if (loading || showIndex >= shows.length) return;
+        loading = true;
+        loadingIndicator.style.display = 'block';
 
-        try {
-            // Simulating a fetch with static data for demonstration
-            const data = {
-                shows: Array.from({ length: 8 }, (_, i) => ({
-                    image: `https://picsum.photos/200/300?random=${(page - 1) * 8 + i + 1}`,
-                    title: `Show ${(page - 1) * 8 + i + 1}`,
-                    description: `Description for Show ${(page - 1) * 8 + i + 1}`,
-                    link: '#'
-                }))
-            };
+        const showsToLoad = shows.slice(showIndex, showIndex + 8);
+        showsToLoad.forEach(show => {
+            const showCard = document.createElement('div');
+            showCard.className = 'col-md-3';
+            showCard.innerHTML = `
+                <div class="card mb-4">
+                    <img src="${show.event_thumbnail}" class="card-img-top" alt="${show.event_name}">
+                    <div class="card-body">
+                        <h5 class="card-title">${show.event_name}</h5>
+                        <p class="card-text">${show.event_description}</p>
+                        <a href="/view_description?event_id=${show.event_id}" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
+                    </div>
+                </div>
+            `;
+            showsContainer.appendChild(showCard);
+        });
 
-            if (data.shows.length === 0) {
-                hasMoreShows = false;
-                loadingElement.textContent = 'No more shows';
+        showIndex += 8;
+        loading = false;
+        if (showIndex >= shows.length) {
+            loadingIndicator.textContent = 'No more shows to load.';
+        } else {
+            loadingIndicator.style.display = 'none';
+        }
+    }
+
+    fetch('/api/shows')
+        .then(response => response.json())
+        .then(data => {
+            if (data.shows) {
+                shows = data.shows;
+                loadShows(); // Initial load
             } else {
-                data.shows.forEach(show => {
-                    const showElement = document.createElement('div');
-                    showElement.classList.add('col-md-3');
-                    showElement.innerHTML = `
-                        <div class="card mb-4">
-                            <img src="${show.image}" class="card-img-top" alt="${show.title}">
-                            <div class="card-body">
-                                <h5 class="card-title">${show.title}</h5>
-                                <p class="card-text">${show.description}</p>
-                                <a href="${show.link}" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
-                            </div>
-                        </div>
-                    `;
-                    showsContainer.appendChild(showElement);
-                });
+                console.error('Unexpected response format:', data);
             }
-        } catch (error) {
-            console.error('Error fetching shows:', error);
-        }
+        })
+        .catch(error => {
+            console.error('Error loading shows:', error);
+        });
 
-        loadingElement.style.display = 'none';
-        isLoading = false;
-    }
-
-    function handleScroll() {
+    window.addEventListener('scroll', () => {
         if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
-            page++;
-            fetchShows(page);
+            loadShows();
         }
-    }
-
-    window.addEventListener('scroll', handleScroll);
-    fetchShows(page);
+    });
 });

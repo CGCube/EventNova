@@ -16,22 +16,9 @@
         <div class="col">
             <h2 class="d-inline">Shows</h2>
             <hr class="d-inline" style="width: 50px; height: 2px; background-color: #343a40; border: none;">
-            <a href="#" class="float-end" style="color: #343a40;">Show All</a>
         </div>
     </div>
     <div id="shows-container" class="row">
-        {% for item_index in range(8) %}
-            <div class="col-md-3">
-                <div class="card mb-4">
-                    <img src="https://picsum.photos/200/300?random={{ item_index + 1 }}" class="card-img-top" alt="Show {{ item_index + 1 }}">
-                    <div class="card-body">
-                        <h5 class="card-title">Show {{ item_index + 1 }}</h5>
-                        <p class="card-text">Description for Show {{ item_index + 1 }}</p>
-                        <a href="/view_description" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
     </div>
     <div id="loading" class="text-center">Loading...</div>
 </div>

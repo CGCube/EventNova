@@ -1,8 +1,8 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, session, current_app
 from app import db
-from app.models import Guest, Organizer, Event, Review  # Added Review model
+from app.models import Guest, Organizer, Event, Review
 import logging
-import random  # Added import for random
+import random
 from datetime import datetime
 
 # Setting up logging
@@ -33,15 +33,45 @@ def init_routes(app):
 
     @app.route('/shows')
     def shows():
-        events = Event.query.filter_by(event_type='show').all()
-        random.shuffle(events)  # Shuffle the list of shows
-        return render_template('shows.html', events=events, isLoggedIn=isLoggedIn)
+        return render_template('shows.html', isLoggedIn=isLoggedIn)
 
     @app.route('/movies')
     def movies():
-        events = Event.query.filter_by(event_type='movie').all()
-        random.shuffle(events)  # Shuffle the list of movies
-        return render_template('movies.html', events=events, isLoggedIn=isLoggedIn)
+        return render_template('movies.html', isLoggedIn=isLoggedIn)
+
+    @app.route('/api/movies')
+    def api_movies():
+        try:
+            events = Event.query.with_entities(Event.event_id, Event.event_name, Event.event_description, Event.event_thumbnail).filter_by(event_type='movie').all()
+            movies = []
+            for event in events:
+                movies.append({
+                    "event_id": event.event_id,
+                    "event_name": event.event_name[:20] + "..." if len(event.event_name) > 20 else event.event_name,
+                    "event_thumbnail": event.event_thumbnail,
+                    "event_description": event.event_description[:40] + "..." if len(event.event_description) > 40 else event.event_description
+                })
+            return jsonify({"movies": movies})
+        except Exception as e:
+            logging.error(f"Error fetching movies: {e}")
+            return jsonify({"error": "An error occurred while fetching movies."}), 500
+
+    @app.route('/api/shows')
+    def api_shows():
+        try:
+            events = Event.query.with_entities(Event.event_id, Event.event_name, Event.event_description, Event.event_thumbnail).filter_by(event_type='show').all()
+            shows = []
+            for event in events:
+                shows.append({
+                    "event_id": event.event_id,
+                    "event_name": event.event_name[:20] + "..." if len(event.event_name) > 20 else event.event_name,
+                    "event_thumbnail": event.event_thumbnail,
+                    "event_description": event.event_description[:40] + "..." if len(event.event_description) > 40 else event.event_description
+                })
+            return jsonify({"shows": shows})
+        except Exception as e:
+            logging.error(f"Error fetching shows: {e}")
+            return jsonify({"error": "An error occurred while fetching shows."}), 500
 
     @app.route('/view_description')
     def view_description():
@@ -135,14 +165,10 @@ def init_routes(app):
         gusername = request.form.get('gusername')
         gphone = request.form.get('gphone')
 
-        # Perform server-side validation if necessary
-
-        # Create a new guest user and save to the database
         new_guest = Guest(gname=gname, gemail=gemail, gpassword=gpassword, gusername=gusername, gphone=gphone)
         db.session.add(new_guest)
         db.session.commit()
 
-        # Flash a success message and redirect to login page
         flash('Sign up successful! Please log in.', 'success')
         return redirect(url_for('login'))
 
@@ -155,14 +181,10 @@ def init_routes(app):
         ophone = request.form.get('ophone')
         odescription = request.form.get('odescription')
 
-        # Perform server-side validation if necessary
-
-        # Create a new organizer user and save to the database
         new_organizer = Organizer(oname=oname, oemail=oemail, opassword=opassword, ousername=ousername, ophone=ophone, odescription=odescription)
         db.session.add(new_organizer)
         db.session.commit()
 
-        # Flash a success message and redirect to login page
         flash('Sign up successful! Please log in.', 'success')
         return redirect(url_for('login'))
 
@@ -288,7 +310,6 @@ def init_routes(app):
 
     @app.route('/get_order_history')
     def get_order_history():
-        # This is a placeholder implementation. Replace it with your actual order fetching logic.
         orders = [
             {"type": "Movie", "name": "Avengers: Endgame", "date": "2023-01-15"},
             {"type": "Event", "name": "Music Concert", "date": "2023-03-10"},
@@ -369,7 +390,6 @@ def init_routes(app):
     def search_events():
         query = request.form.get('query')
         if query:
-            # Search for events that match the query
             events = Event.query.filter(Event.event_name.ilike(f'%{query}%')).all()
             event_list = [
                 {
@@ -383,7 +403,7 @@ def init_routes(app):
             ]
             return jsonify(events=event_list)
         return jsonify(events=[])
-    
+
     @app.route('/search_results')
     def search_results():
         query = request.args.get('query', '')
