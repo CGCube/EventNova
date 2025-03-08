@@ -27,6 +27,10 @@ def init_routes(app):
     def index():
         return render_template('home.html', isLoggedIn=isLoggedIn)
 
+    @app.route('/signup_select')
+    def signup_select():
+        return render_template('signup_select.html', isLoggedIn=isLoggedIn)
+
     @app.route('/shows')
     def shows():
         events = Event.query.filter_by(event_type='show').all()
@@ -113,7 +117,7 @@ def init_routes(app):
         txn_id = "1234567890"
         booking_date = "2025-03-03"
         booking_time = "19:07:33"
-        return render_template('booking_summary.html', isLoggedIn=True, payment_success=payment_success, event_name=event_name, location=location, date=date, time=time, seats=seats, txn_id=txn_id, booking_date=booking_date, booking_time=booking_time)
+        return render_template('booking_summary.html', isLoggedIn=True, payment_success=payment_success, event_name=event_name, location=location, date=date, time=time, seats=seats, txn_id=txn_id)
 
     @app.route('/booking_confirmation')
     def booking_confirmation():
