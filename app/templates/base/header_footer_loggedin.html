@@ -68,5 +68,8 @@
     <script src="{{ url_for('static', filename=page_script) }}"></script>
     <!-- Include header-footer-loggedin.js script -->
     <script src="{{ url_for('static', filename='scripts/base/header-footer-loggedin.js') }}"></script>
+    <script>
+        const currentUserLocation = "{{ currentUserLocation }}";
+    </script>
 </body>
 </html>

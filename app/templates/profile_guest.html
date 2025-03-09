@@ -54,6 +54,19 @@
                             <label for="phone" class="form-label">Phone Number</label>
                             <input type="text" class="form-control" id="phone" name="phone" readonly>
                         </div>
+                        <!-- New field for location -->
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <select class="form-control" id="location" name="location" disabled>
+                                <option value="" disabled>Select your location</option>
+                                <option value="Mumbai">Mumbai</option>
+                                <option value="Pune">Pune</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Hyderabad">Hyderabad</option>
+                                <option value="Chennai">Chennai</option>
+                                <option value="Kolkata">Kolkata</option>
+                            </select>
+                        </div>
                         <button type="button" class="btn btn-outline-primary custom-btn" id="editProfileBtn">Edit Profile</button>
                         <button type="submit" class="btn btn-primary custom-btn" id="submitProfileBtn" style="display:none;">Save</button>
                         <button type="button" class="btn btn-outline-secondary custom-btn" id="cancelEditProfileBtn" style="display:none;">Cancel</button>

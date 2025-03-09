@@ -8,6 +8,7 @@ class Guest(db.Model):
     gpassword = db.Column(db.String(100), nullable=False)
     gphone = db.Column(db.String(10), nullable=True)
     gusername = db.Column(db.String(100), nullable=False)
+    glocation = db.Column(db.String(100), nullable=False)  # New field for location
 
 class Organizer(db.Model):
     __tablename__ = 'organizers'

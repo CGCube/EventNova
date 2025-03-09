@@ -11,6 +11,7 @@ logging.basicConfig(level=logging.DEBUG)
 isLoggedIn = False
 UserType = ""
 currentUser = None
+currentUserLocation = None  # Variable to store the location of the user
 
 def generate_seat_labels(rows, cols):
     labels = []
@@ -25,24 +26,33 @@ def init_routes(app):
 
     @app.route('/')
     def index():
-        return render_template('home.html', isLoggedIn=isLoggedIn)
+        return render_template('home.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation)
+
+    @app.route('/signup_guest')
+    def signup_guest():
+        return render_template('signup_guest.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation)
 
     @app.route('/signup_select')
     def signup_select():
-        return render_template('signup_select.html', isLoggedIn=isLoggedIn)
+        return render_template('signup_select.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation)
 
     @app.route('/shows')
     def shows():
-        return render_template('shows.html', isLoggedIn=isLoggedIn)
+        location_filter = currentUserLocation if currentUserLocation else ""
+        events = Event.query.filter_by(event_type='show', city=location_filter).all() if location_filter else Event.query.filter_by(event_type='show').all()
+        return render_template('shows.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation, events=events)
 
     @app.route('/movies')
     def movies():
-        return render_template('movies.html', isLoggedIn=isLoggedIn)
+        location_filter = currentUserLocation if currentUserLocation else ""
+        events = Event.query.filter_by(event_type='movie', city=location_filter).all() if location_filter else Event.query.filter_by(event_type='movie').all()
+        return render_template('movies.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation, events=events)
 
     @app.route('/api/movies')
     def api_movies():
         try:
-            events = Event.query.with_entities(Event.event_id, Event.event_name, Event.event_description, Event.event_thumbnail).filter_by(event_type='movie').all()
+            location_filter = currentUserLocation if currentUserLocation else ""
+            events = Event.query.filter_by(event_type='movie', city=location_filter).all() if location_filter else Event.query.filter_by(event_type='movie').all()
             movies = []
             for event in events:
                 movies.append({
@@ -59,7 +69,8 @@ def init_routes(app):
     @app.route('/api/shows')
     def api_shows():
         try:
-            events = Event.query.with_entities(Event.event_id, Event.event_name, Event.event_description, Event.event_thumbnail).filter_by(event_type='show').all()
+            location_filter = currentUserLocation if currentUserLocation else ""
+            events = Event.query.filter_by(event_type='show', city=location_filter).all() if location_filter else Event.query.filter_by(event_type='show').all()
             shows = []
             for event in events:
                 shows.append({
@@ -78,7 +89,7 @@ def init_routes(app):
         event_id = request.args.get('event_id')
         event = Event.query.get(event_id)
         reviews = Review.query.filter_by(event_id=event_id).all()
-        return render_template('view_description.html', event=event, reviews=reviews, isLoggedIn=isLoggedIn)
+        return render_template('view_description.html', event=event, reviews=reviews, isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation)
 
     @app.route('/submit_review', methods=['POST'])
     def submit_review():
@@ -113,26 +124,26 @@ def init_routes(app):
 
         seat_labels = generate_seat_labels(10, 20)
         selected_seats = []  # Example selected seats
-        return render_template('seat_selection.html', isLoggedIn=True, seat_labels=seat_labels, selected_seats=selected_seats)
+        return render_template('seat_selection.html', isLoggedIn=True, seat_labels=seat_labels, selected_seats=selected_seats, currentUserLocation=currentUserLocation)
 
     if isLoggedIn & (UserType == "organizer"):
         @app.route('/add-event')
         def add_event():
-            return render_template('add_event.html')
+            return render_template('add_event.html', currentUserLocation=currentUserLocation)
         @app.route('/update-event')
         def edit_event():
-            return render_template('update_event.html')
+            return render_template('update_event.html', currentUserLocation=currentUserLocation)
         @app.route('/event-stats')
         def event_stats():
-            return render_template('event_stats.html')
+            return render_template('event_stats.html', currentUserLocation=currentUserLocation)
 
     @app.route('/profile')
     def user_profile():
         if isLoggedIn:
             if UserType == "guest":
-                return render_template('profile_guest.html')
+                return render_template('profile_guest.html', currentUserLocation=currentUserLocation)
             elif UserType == "organizer":
-                return render_template('profile_organizer.html')
+                return render_template('profile_organizer.html', currentUserLocation=currentUserLocation)
         else:
             return 'NOT LOGGED IN'
 
@@ -147,7 +158,7 @@ def init_routes(app):
         txn_id = "1234567890"
         booking_date = "2025-03-03"
         booking_time = "19:07:33"
-        return render_template('booking_summary.html', isLoggedIn=True, payment_success=payment_success, event_name=event_name, location=location, date=date, time=time, seats=seats, txn_id=txn_id)
+        return render_template('booking_summary.html', isLoggedIn=True, payment_success=payment_success, event_name=event_name, location=location, date=date, time=time, seats=seats, txn_id=txn_id, currentUserLocation=currentUserLocation)
 
     @app.route('/booking_confirmation')
     def booking_confirmation():
@@ -155,7 +166,7 @@ def init_routes(app):
         seat_list = seats.split(',') if seats else []
         price_per_seat = 15.0  # Example price per seat
         total_amount = price_per_seat * len(seat_list)
-        return render_template('booking_confirmation.html', isLoggedIn=True, seats=seats, price_per_seat=price_per_seat, total_amount=total_amount)
+        return render_template('booking_confirmation.html', isLoggedIn=True, seats=seats, price_per_seat=price_per_seat, total_amount=total_amount, currentUserLocation=currentUserLocation)
 
     @app.route('/submit_signup_guest', methods=['POST'])
     def submit_signup_guest():
@@ -164,8 +175,9 @@ def init_routes(app):
         gpassword = request.form.get('gpassword')
         gusername = request.form.get('gusername')
         gphone = request.form.get('gphone')
+        glocation = request.form.get('glocation')  # New field for location
 
-        new_guest = Guest(gname=gname, gemail=gemail, gpassword=gpassword, gusername=gusername, gphone=gphone)
+        new_guest = Guest(gname=gname, gemail=gemail, gpassword=gpassword, gusername=gusername, gphone=gphone, glocation=glocation)
         db.session.add(new_guest)
         db.session.commit()
 
@@ -190,22 +202,23 @@ def init_routes(app):
 
     @app.route('/submit_login', methods=['POST'])
     def submit_login():
-        global isLoggedIn, UserType, currentUser
+        global isLoggedIn, UserType, currentUser, currentUserLocation  # Added currentUserLocation
 
-        email = request.form.get('email')
+        username = request.form.get('username')
         password = request.form.get('password')
         user_type = request.form.get('user_type')
 
-        logging.debug(f"Login attempt with email: {email}, user_type: {user_type}")
+        logging.debug(f"Login attempt with username: {username}, user_type: {user_type}")
 
         if user_type == "Guest":
-            user = Guest.query.filter_by(gemail=email, gpassword=password).first()
+            user = Guest.query.filter_by(gusername=username, gpassword=password).first()
             logging.debug(f"Guest user found: {user}")
             if user:
                 UserType = "guest"
                 currentUser = user.gusername
+                currentUserLocation = user.glocation  # Store the location of the guest user
         elif user_type == "Organizer":
-            user = Organizer.query.filter_by(oemail=email, opassword=password).first()
+            user = Organizer.query.filter_by(ousername=username, opassword=password).first()
             logging.debug(f"Organizer user found: {user}")
             if user:
                 UserType = "organizer"
@@ -240,7 +253,8 @@ def init_routes(app):
                 "organizer_id": user.ousername if UserType == "organizer" else None,
                 "email": user.gemail if UserType == "guest" else user.oemail,
                 "phone": user.gphone if UserType == "guest" else user.ophone,
-                "description": user.odescription if UserType == "organizer" else None
+                "description": user.odescription if UserType == "organizer" else None,
+                "location": user.glocation if UserType == "guest" else None  # New field for location
             }
             return jsonify({"success": True, "profile": profile})
         else:
@@ -256,6 +270,7 @@ def init_routes(app):
                 user.gname = data["name"]
                 user.gemail = data["email"]
                 user.gphone = data["phone"]
+                user.glocation = data["location"]  # New field for location
         elif UserType == "organizer":
             user = Organizer.query.filter_by(ousername=currentUser).first()
             if user:
@@ -302,10 +317,11 @@ def init_routes(app):
 
     @app.route('/logout', methods=['POST'])
     def logout():
-        global isLoggedIn, UserType, currentUser
+        global isLoggedIn, UserType, currentUser, currentUserLocation  # Added currentUserLocation
         isLoggedIn = False
         UserType = ""
         currentUser = None
+        currentUserLocation = None  # Reset the location
         return jsonify({"success": True})
 
     @app.route('/get_order_history')
@@ -319,8 +335,9 @@ def init_routes(app):
 
     @app.route('/api/events')
     def api_events():
-        movies = Event.query.filter_by(event_type='movie').all()
-        shows = Event.query.filter_by(event_type='show').all()
+        location_filter = currentUserLocation if currentUserLocation else ""
+        movies = Event.query.filter_by(event_type='movie', city=location_filter).all() if location_filter else Event.query.filter_by(event_type='movie').all()
+        shows = Event.query.filter_by(event_type='show', city=location_filter).all() if location_filter else Event.query.filter_by(event_type='show').all()
         
         random.shuffle(movies)
         random.shuffle(shows)
@@ -389,8 +406,9 @@ def init_routes(app):
     @app.route('/search_events', methods=['POST'])
     def search_events():
         query = request.form.get('query')
+        location_filter = currentUserLocation if currentUserLocation else ""
         if query:
-            events = Event.query.filter(Event.event_name.ilike(f'%{query}%')).all()
+            events = Event.query.filter(Event.event_name.ilike(f'%{query}%'), Event.city == location_filter).all() if location_filter else Event.query.filter(Event.event_name.ilike(f'%{query}%')).all()
             event_list = [
                 {
                     "event_id": event.event_id,
@@ -407,4 +425,4 @@ def init_routes(app):
     @app.route('/search_results')
     def search_results():
         query = request.args.get('query', '')
-        return render_template('search_result.html', query=query, isLoggedIn=isLoggedIn)
+        return render_template('search_result.html', query=query, isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation)

@@ -15,20 +15,13 @@ document.addEventListener("DOMContentLoaded", function() {
     loginForm.addEventListener("submit", function(event) {
         event.preventDefault(); // Prevent the default form submission
 
-        const email = document.getElementById("email").value.trim();
+        const username = document.getElementById("username").value.trim();
         const password = document.getElementById("password").value.trim();
         const userType = dropdownSelection.value.trim();
 
         // Perform client-side validation
-        if (!email || !password || !userType) {
+        if (!username || !password || !userType) {
             alert("Please fill in all required fields and select a user type.");
-            return;
-        }
-
-        // Email validation
-        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-        if (!emailPattern.test(email)) {
-            alert("Please enter a valid email address.");
             return;
         }
 
@@ -39,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 "Content-Type": "application/x-www-form-urlencoded",
             },
             body: new URLSearchParams({
-                email: email,
+                username: username,
                 password: password,
                 user_type: userType,
             }),
