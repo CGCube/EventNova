@@ -1,4 +1,4 @@
 
 git-auto-sync-daemon.exe
 git-auto-sync.exe
-app/__pycache__/
+__pycache__/

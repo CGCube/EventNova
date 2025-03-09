@@ -6,13 +6,15 @@
 
 {% block page_title %}Seat Selection{% endblock page_title %}
 
-{% set page_style = url_for('static', filename='styles/seat-selection.css') %}
-{% set page_script = url_for('static', filename='scripts/seat-selection.js') %}
+{% set page_style = 'styles/seat-selection.css' %}
+{% set page_script = 'scripts/seat-selection.js' %}
 
 {% block content %}
 <div class="container mt-5">
     <h1 class="text-center">Select Your Seat</h1>
     <form action="{{ url_for('select_seats') }}" method="POST" id="seatForm">
+        <input type="hidden" id="event_id" name="event_id" value="{{ request.args.get('event_id') }}">
+        <input type="hidden" id="guest_id" name="guest_id" value="{{ guest_id }}">
         <div class="seat-grid">
             <table class="table table-borderless text-center">
                 {% for row in seat_labels %}

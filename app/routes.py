@@ -35,6 +35,10 @@ def init_routes(app):
     @app.route('/signup_select')
     def signup_select():
         return render_template('signup_select.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation)
+    
+    @app.route('/signup_organizer')
+    def signup_organizer():
+        return render_template('signup_organizer.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation)
 
     @app.route('/shows')
     def shows():
@@ -124,7 +128,9 @@ def init_routes(app):
 
         seat_labels = generate_seat_labels(10, 20)
         selected_seats = []  # Example selected seats
-        return render_template('seat_selection.html', isLoggedIn=True, seat_labels=seat_labels, selected_seats=selected_seats, currentUserLocation=currentUserLocation)
+        guest = Guest.query.filter_by(gusername=currentUser).first()  # Get the current guest user
+        guest_id = guest.guest_id if guest else None  # Get the guest ID if available
+        return render_template('seat_selection.html', isLoggedIn=True, seat_labels=seat_labels, selected_seats=selected_seats, guest_id=guest_id, currentUserLocation=currentUserLocation)
 
     if isLoggedIn & (UserType == "organizer"):
         @app.route('/add-event')
@@ -166,7 +172,7 @@ def init_routes(app):
         seat_list = seats.split(',') if seats else []
         price_per_seat = 15.0  # Example price per seat
         total_amount = price_per_seat * len(seat_list)
-        return render_template('booking_confirmation.html', isLoggedIn=True, seats=seats, price_per_seat=price_per_seat, total_amount=total_amount, currentUserLocation=currentUserLocation)
+        return render_template('booking_confirmation.html', isLoggedIn=True, seats=seat_list, price_per_seat=price_per_seat, total_amount=total_amount, currentUserLocation=currentUserLocation)
 
     @app.route('/submit_signup_guest', methods=['POST'])
     def submit_signup_guest():
@@ -249,8 +255,8 @@ def init_routes(app):
         if user:
             profile = {
                 "name": user.gname if UserType == "guest" else user.oname,
-                "guest_id": user.gusername if UserType == "guest" else None,
-                "organizer_id": user.ousername if UserType == "organizer" else None,
+                "guest_id": user.guest_id if UserType == "guest" else None,
+                "organizer_id": user.organizer_id if UserType == "organizer" else None,
                 "email": user.gemail if UserType == "guest" else user.oemail,
                 "phone": user.gphone if UserType == "guest" else user.ophone,
                 "description": user.odescription if UserType == "organizer" else None,

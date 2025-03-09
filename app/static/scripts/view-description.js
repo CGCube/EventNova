@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
+    const bookTicketBtn = document.querySelector('.book-ticket-btn');
     const urlParams = new URLSearchParams(window.location.search);
     const eventId = urlParams.get('event_id');
     console.log('Event ID from URL:', eventId); // Debug log
@@ -90,5 +91,11 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         })
         .catch(error => console.error('Error submitting review:', error));
+        
+            bookTicketBtn.addEventListener('click', function () {
+                const eventId = this.getAttribute('data-event-id'); // Assuming data-event-id attribute is set
+                window.location.href = `/select_seats?event_id=${eventId}`;
+            });
     });
 });
+
