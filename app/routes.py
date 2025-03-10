@@ -1,17 +1,21 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, session, current_app
 from app import db
-from app.models import Guest, Organizer, Event, Review
+from app.models import Guest, Organizer, Event, Review, Booking, Payment, Seat
 import logging
 import random
 from datetime import datetime
+import stripe
+from app.config import Config
 
 # Setting up logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 isLoggedIn = False
 UserType = ""
 currentUser = None
 currentUserLocation = None  # Variable to store the location of the user
+stripe.api_key = Config.STRIPE_API_KEY
 
 def generate_seat_labels(rows, cols):
     labels = []
@@ -124,7 +128,8 @@ def init_routes(app):
     def select_seats():
         if request.method == 'POST':
             selected_seats = request.form.getlist('seats')
-            return redirect(url_for('booking_confirmation', seats=','.join(selected_seats)))
+            event_id = request.form.get('event_id')  # Get event_id from form
+            return redirect(url_for('booking_confirmation', seats=','.join(selected_seats), event_id=event_id))  # Pass event_id in URL
 
         seat_labels = generate_seat_labels(10, 20)
         selected_seats = []  # Example selected seats
@@ -153,24 +158,13 @@ def init_routes(app):
         else:
             return 'NOT LOGGED IN'
 
-    @app.route('/booking_summary')
-    def booking_summary():
-        payment_success = True  # Example variable
-        event_name = "Sample Event"
-        location = "Sample Location"
-        date = "2025-03-03"
-        time = "18:30"
-        seats = "A1, A2, A3"
-        txn_id = "1234567890"
-        booking_date = "2025-03-03"
-        booking_time = "19:07:33"
-        return render_template('booking_summary.html', isLoggedIn=True, payment_success=payment_success, event_name=event_name, location=location, date=date, time=time, seats=seats, txn_id=txn_id, currentUserLocation=currentUserLocation)
-
     @app.route('/booking_confirmation')
     def booking_confirmation():
         seats = request.args.get('seats', '')  # Get selected seats from query parameters
         seat_list = seats.split(',') if seats else []
-        price_per_seat = 15.0  # Example price per seat
+        event_id = request.args.get('event_id')  # Get event_id from query parameters
+        event = Event.query.get(event_id)  # Fetch event details from database
+        price_per_seat = event.price if event else 0  # Get price from event
         total_amount = price_per_seat * len(seat_list)
         return render_template('booking_confirmation.html', isLoggedIn=True, seats=seat_list, price_per_seat=price_per_seat, total_amount=total_amount, currentUserLocation=currentUserLocation)
 
@@ -428,7 +422,186 @@ def init_routes(app):
             return jsonify(events=event_list)
         return jsonify(events=[])
 
+
     @app.route('/search_results')
     def search_results():
         query = request.args.get('query', '')
         return render_template('search_result.html', query=query, isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation)
+    
+
+    @app.route('/create-payment-intent', methods=['POST'])
+    def create_payment_intent():
+        data = request.json
+        amount = data.get("amount")
+        currency = data.get("currency")
+
+        try:
+            intent = stripe.PaymentIntent.create(
+                amount=amount,
+                currency=currency,
+                payment_method_types=["card"],
+            )
+            return jsonify({"success": True, "client_secret": intent.client_secret})
+        except Exception as e:
+            logger.error(f"Error creating payment intent: {str(e)}")
+            return jsonify({"success": False, "error": str(e)})
+
+    @app.route('/complete-booking', methods=['POST'])
+    def complete_booking():
+        data = request.json
+        payment_intent_id = data.get("payment_intent_id")
+        event_id = data.get("event_id")
+        seats = data.get("seats")
+        total_amount = data.get("total_amount")
+
+        try:
+            # Log the seats array to verify its contents
+            logger.debug(f"Seats array before processing: {seats}")
+
+            # Clean the seats array to ensure no extraneous characters
+            cleaned_seats = [seat.strip("[]'\" ") for seat in seats]
+            logger.debug(f"Seats array after cleaning: {cleaned_seats}")
+
+            # Retrieve the payment intent to get the amount and currency
+            intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+
+            # Assuming user is logged in and we have guest_id
+            guest_id = 1  # Replace with actual guest_id from session
+
+            # Create a new booking
+            booking = Booking(
+                guest_id=guest_id,
+                event_id=event_id,
+                number_of_tickets=len(cleaned_seats),
+                total_price=total_amount
+            )
+            db.session.add(booking)
+            db.session.commit()
+
+            # Create a new payment record
+            payment = Payment(
+                guest_id=guest_id,
+                booking_id=booking.booking_id,
+                stripe_payment_id=payment_intent_id,
+                amount=intent.amount / 100,  # Convert cents to dollars
+                currency=intent.currency,
+                status=intent.status
+            )
+            db.session.add(payment)
+
+            # Update available seats in the event
+            event = Event.query.get(event_id)
+            event.available_seats -= len(cleaned_seats)
+            db.session.add(event)
+
+            # Create seat records for each seat
+            for seat in cleaned_seats:
+                seat_record = Seat(
+                    guest_id=guest_id,
+                    booking_id=booking.booking_id,
+                    event_id=event_id,
+                    seat_number=seat
+                )
+                db.session.add(seat_record)
+
+            db.session.commit()
+            return jsonify({"success": True})
+        except Exception as e:
+            logger.error(f"Error completing booking: {str(e)}")
+            db.session.rollback()
+            return jsonify({"success": False, "error": str(e)})
+
+    @app.route('/api/booking_summary', methods=['GET'])
+    def booking_summary():
+        payment_intent_id = request.args.get('payment_intent')
+        if not payment_intent_id:
+            logger.error("Missing payment_intent parameter")
+            return jsonify({"success": False, "error": "Missing payment_intent parameter"}), 400
+
+        try:
+            # Retrieve the payment record
+            payment = Payment.query.filter_by(stripe_payment_id=payment_intent_id).first()
+            if not payment:
+                logger.error("Payment not found")
+                return jsonify({"success": False, "error": "Payment not found"}), 404
+
+            # Retrieve the booking record
+            booking = Booking.query.get(payment.booking_id)
+            if not booking:
+                logger.error("Booking not found")
+                return jsonify({"success": False, "error": "Booking not found"}), 404
+
+            # Retrieve the event record
+            event = Event.query.get(booking.event_id)
+            if not event:
+                logger.error("Event not found")
+                return jsonify({"success": False, "error": "Event not found"}), 404
+
+            # Retrieve the seat records
+            seats = Seat.query.filter_by(booking_id=booking.booking_id).all()
+            seat_numbers = [seat.seat_number for seat in seats]
+
+            # Prepare the response data
+            response_data = {
+                "success": True,
+                "event_name": event.event_name,
+                "location": event.city,
+                "date": event.date.strftime("%Y-%m-%d"),
+                "time": event.time.strftime("%H:%M:%S"),
+                "seats": seat_numbers,
+                "txn_id": payment.stripe_payment_id,
+                "booking_date": booking.date_created.strftime("%Y-%m-%d"),
+                "booking_time": booking.date_created.strftime("%H:%M:%S")
+            }
+            return jsonify(response_data)
+        except Exception as e:
+            logger.error(f"Error fetching booking summary: {str(e)}", exc_info=True)
+            return jsonify({"success": False, "error": str(e)}), 500
+
+    @app.route('/booking_summary')
+    def booking_summary_page():
+        payment_intent = request.args.get('payment_intent')
+        payment_success = request.args.get('success', 'false') == 'true'
+        
+        if payment_intent:
+            payment = Payment.query.filter_by(stripe_payment_id=payment_intent).first()
+            if payment and payment.status == 'succeeded':
+                payment_success = True
+
+        return render_template('booking_summary.html', payment_success=payment_success)
+    
+    @app.route('/select_seats')
+    def seat_selection_page():
+        event_id = request.args.get('event_id')
+        if not event_id:
+            logger.error('Event ID is missing in the URL.')
+            return redirect(url_for('home'))  # Redirect to home or an appropriate page if event_id is missing
+
+        # Fetch booked seats for the event
+        booked_seat_numbers = db.session.query(Seat.seat_number).filter(Seat.event_id == event_id).all()
+        booked_seat_numbers = [seat[0] for seat in booked_seat_numbers]  # Unpack tuples
+        logger.info('Fetched Booked Seat Numbers: %s', booked_seat_numbers)  # Debugging line
+
+        guest_id = session.get('guest_id')  # Replace with actual guest_id from session or context
+        if guest_id is None:
+            logger.error('Guest ID is not available in the session.')
+            return redirect(url_for('login'))  # Redirect to login if guest_id is not available
+
+        seat_labels = generate_seat_labels(10, 20)  # Example seat labels, replace with actual logic
+
+        return render_template('seat_selection.html', event_id=event_id, guest_id=guest_id, booked_seat_numbers=booked_seat_numbers, seat_labels=seat_labels)
+
+    @app.route('/api/booked_seats', methods=['GET'])
+    def booked_seats():
+        event_id = request.args.get('event_id')
+        if not event_id:
+            return jsonify({"success": False, "error": "Missing event_id parameter"}), 400
+
+        try:
+            booked_seat_numbers = db.session.query(Seat.seat_number).filter(Seat.event_id == event_id).all()
+            booked_seat_numbers = [seat[0] for seat in booked_seat_numbers]  # Unpack tuples
+            logger.info('API Fetched Booked Seat Numbers: %s', booked_seat_numbers)  # Debugging line
+            return jsonify({"success": True, "booked_seats": booked_seat_numbers})
+        except Exception as e:
+            logger.error(f"Error fetching booked seats: {str(e)}", exc_info=True)
+            return jsonify({"success": False, "error": str(e)}), 500

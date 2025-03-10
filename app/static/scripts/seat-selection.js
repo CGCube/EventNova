@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const bookedSeatsData = document.getElementById('bookedSeatsData').textContent;
+    const bookedSeats = bookedSeatsData ? JSON.parse(bookedSeatsData) : [];
+    console.log('Booked Seats:', bookedSeats); // Debugging line
     const seatCheckboxes = document.querySelectorAll('.btn-check');
     const confirmButton = document.querySelector('#confirmButton');
 
@@ -7,6 +10,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const guestId = document.getElementById('guest_id').value;
     console.log('Event ID:', eventId); // Debugging line
     console.log('Guest ID:', guestId); // Debugging line
+
+    // Disable booked seats
+    bookedSeats.forEach(seatNumber => {
+        const seatCheckbox = document.querySelector(`.btn-check[value="${seatNumber}"]`);
+        if (seatCheckbox) {
+            seatCheckbox.disabled = true;
+            const label = document.querySelector(`label[for="${seatCheckbox.id}"]`);
+            if (label) {
+                label.classList.add('btn-secondary', 'text-muted', 'border-secondary');
+            }
+        }
+    });
 
     // Add event listener for seat selection
     seatCheckboxes.forEach(checkbox => {
@@ -56,11 +71,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log('Booking Details:', bookingDetails);
 
-        // Display an alert with the variables and their values
-        alert(`Guest ID: ${guestId}\nEvent ID: ${eventId}\nNumber of Seats: ${noOfSeats}\nSeat Numbers: ${selectedSeats.join(', ')}`);
-
-        // Submit the form or send data to the server as needed
-        document.querySelector('#seatForm').submit();
+        // Redirect to booking confirmation page with parameters
+        const url = new URL(window.location.origin + '/booking_confirmation');
+        url.searchParams.append('seats', selectedSeats.join(','));
+        url.searchParams.append('event_id', eventId);
+        window.location.href = url.toString();
     });
 
     // Initial check for confirm button state

@@ -6,8 +6,8 @@
 
 {% block page_title %}Booking Summary{% endblock page_title %}
 
-{% set page_style = url_for('static', filename='styles/booking-summary.css') %}
-{% set page_script = url_for('static', filename='scripts/booking-summary.js') %}
+{% set page_style = 'styles/booking-summary.css' %}
+{% set page_script = 'scripts/booking-summary.js' %}
 
 {% block content %}
 <div class="container mt-5">
@@ -16,35 +16,35 @@
         <table class="table table-bordered mt-4">
             <tr>
                 <th class="text-center">Event/Show/Movie name</th>
-                <td class="text-center">{{ event_name }}</td>
+                <td class="text-center" data-field="event_name"></td>
             </tr>
             <tr>
                 <th class="text-center">Location</th>
-                <td class="text-center">{{ location }}</td>
+                <td class="text-center" data-field="location"></td>
             </tr>
             <tr>
                 <th class="text-center">Date</th>
-                <td class="text-center">{{ date }}</td>
+                <td class="text-center" data-field="date"></td>
             </tr>
             <tr>
                 <th class="text-center">Time</th>
-                <td class="text-center">{{ time }}</td>
+                <td class="text-center" data-field="time"></td>
             </tr>
             <tr>
                 <th class="text-center">Seats</th>
-                <td class="text-center">{{ seats }}</td>
+                <td class="text-center" data-field="seats"></td>
             </tr>
             <tr>
                 <th class="text-center">Txn ID</th>
-                <td class="text-center">{{ txn_id }}</td>
+                <td class="text-center" data-field="txn_id"></td>
             </tr>
             <tr>
                 <th class="text-center">Booking Date</th>
-                <td class="text-center">{{ booking_date }}</td>
+                <td class="text-center" data-field="booking_date"></td>
             </tr>
             <tr>
                 <th class="text-center">Booking Time</th>
-                <td class="text-center">{{ booking_time }}</td>
+                <td class="text-center" data-field="booking_time"></td>
             </tr>
         </table>
         <button class="btn btn-primary mt-4" onclick="window.print()">Print Receipt</button>

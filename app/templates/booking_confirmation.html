@@ -15,17 +15,22 @@
     <table class="table table-bordered mt-4">
         <tr>
             <th class="text-center">Seats</th>
-            <td class="text-center">{{ seats }}</td>
+            <td class="text-center" id="seats">{{ seats }}</td>
         </tr>
         <tr>
             <th class="text-center">Price per Seat</th>
-            <td class="text-center">{{ price_per_seat }}</td>
+            <td class="text-center" id="price_per_seat">{{ price_per_seat }}</td>
         </tr>
         <tr>
             <th class="text-center">Total Amount</th>
-            <td class="text-center">{{ total_amount }}</td>
+            <td class="text-center" id="total_amount">{{ total_amount }}</td>
         </tr>
     </table>
-    <button class="btn btn-primary mt-4" id="sendPayment">Send Payment Details</button>
+    <form id="payment-form">
+        <div id="card-element"><!-- Stripe.js injects the Card Element here --></div>
+        <button class="btn btn-primary mt-4" id="sendPayment">Send Payment Details</button>
+        <div id="card-errors" role="alert"></div>
+    </form>
 </div>
+<script src="https://js.stripe.com/v3/"></script> <!-- Added Stripe.js -->
 {% endblock content %}
