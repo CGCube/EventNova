@@ -609,3 +609,28 @@ def init_routes(app):
         except Exception as e:
             logger.error(f"Error fetching booked seats: {str(e)}", exc_info=True)
             return jsonify({"success": False, "error": str(e)}), 500
+
+    @app.route('/get_booking_history')
+    def get_booking_history():
+        guest_id = session.get('guest_id')
+        if not guest_id:
+            return jsonify({"success": False, "message": "User not logged in."}), 401
+
+        try:
+            bookings = Booking.query.filter_by(guest_id=guest_id).all()
+            bookings_list = []
+
+            for booking in bookings:
+                event = Event.query.get(booking.event_id)
+                bookings_list.append({
+                    "type": "Event",
+                    "name": event.event_name,
+                    "date": booking.date_created.strftime("%Y-%m-%d"),
+                    "location": event.venue
+                })
+
+            return jsonify({"success": True, "bookings": bookings_list})
+
+        except Exception as e:
+            logger.error(f"Error fetching booking history: {str(e)}")
+            return jsonify({"success": False, "message": "Error fetching booking history."}), 500

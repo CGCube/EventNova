@@ -139,26 +139,27 @@ document.addEventListener("DOMContentLoaded", function() {
                 profileForm.elements["guest_id"].value = data.profile.guest_id;
                 profileForm.elements["email"].value = data.profile.email;
                 profileForm.elements["phone"].value = data.profile.phone;
+                profileForm.elements["location"].value = data.profile.location;
             } else {
                 alert("Failed to fetch profile data.");
             }
         });
 
-    // Fetch order history and populate list
-    fetch("/get_order_history")
+    // Fetch booking history and populate list
+    fetch("/get_booking_history")
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const orderHistoryList = document.getElementById("order-history-list");
-                orderHistoryList.innerHTML = "";
-                data.orders.forEach(order => {
+                const bookingHistoryList = document.getElementById("booking-history-list");
+                bookingHistoryList.innerHTML = "";
+                data.bookings.forEach(booking => {
                     const listItem = document.createElement("li");
                     listItem.classList.add("list-group-item");
-                    listItem.innerHTML = `<strong>${order.type}:</strong> ${order.name} | <strong>Date:</strong> ${order.date}`;
-                    orderHistoryList.appendChild(listItem);
+                    listItem.innerHTML = `<strong>${booking.type}:</strong> ${booking.name} | <strong>Date:</strong> ${booking.date}`;
+                    bookingHistoryList.appendChild(listItem);
                 });
             } else {
-                alert("Failed to fetch order history.");
+                alert("Failed to fetch booking history.");
             }
         });
 
