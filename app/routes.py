@@ -131,12 +131,26 @@ def init_routes(app):
             event_id = request.form.get('event_id')  # Get event_id from form
             return redirect(url_for('booking_confirmation', seats=','.join(selected_seats), event_id=event_id))  # Pass event_id in URL
 
-        seat_labels = generate_seat_labels(10, 20)
-        selected_seats = []  # Example selected seats
-        guest = Guest.query.filter_by(gusername=currentUser).first()  # Get the current guest user
-        guest_id = guest.guest_id if guest else None  # Get the guest ID if available
-        return render_template('seat_selection.html', isLoggedIn=True, seat_labels=seat_labels, selected_seats=selected_seats, guest_id=guest_id, currentUserLocation=currentUserLocation)
+        event_id = request.args.get('event_id')
+        if not event_id:
+            logger.error('Event ID is missing in the URL.')
+            return redirect(url_for('home'))  # Redirect to home or an appropriate page if event_id is missing
 
+        # Fetch booked seats for the event
+        booked_seat_numbers = db.session.query(Seat.seat_number).filter(Seat.event_id == event_id).all()
+        booked_seat_numbers = [seat[0] for seat in booked_seat_numbers]  # Unpack tuples
+        logger.info('Fetched Booked Seat Numbers: %s', booked_seat_numbers)  # Debugging line
+
+        guest_id = session.get('guest_id')  # Replace with actual guest_id from session or context
+        if guest_id is None:
+            logger.error('Guest ID is not available in the session.')
+            return redirect(url_for('login'))  # Redirect to login if guest_id is not available
+
+        seat_labels = generate_seat_labels(10, 20)  # Example seat labels, replace with actual logic
+        selected_seats = []  # Example selected seats
+
+        return render_template('seat_selection.html', isLoggedIn=True, event_id=event_id, guest_id=guest_id, booked_seat_numbers=booked_seat_numbers, seat_labels=seat_labels, selected_seats=selected_seats, currentUserLocation=currentUserLocation)
+    
     if isLoggedIn & (UserType == "organizer"):
         @app.route('/add-event')
         def add_event():
@@ -217,12 +231,14 @@ def init_routes(app):
                 UserType = "guest"
                 currentUser = user.gusername
                 currentUserLocation = user.glocation  # Store the location of the guest user
+                session['guest_id'] = user.guest_id  # Set guest_id in session
         elif user_type == "Organizer":
             user = Organizer.query.filter_by(ousername=username, opassword=password).first()
             logging.debug(f"Organizer user found: {user}")
             if user:
                 UserType = "organizer"
                 currentUser = user.ousername
+                session['organizer_id'] = user.organizer_id  # Set organizer_id in session
         else:
             return jsonify({"success": False})
 
@@ -465,8 +481,15 @@ def init_routes(app):
             # Retrieve the payment intent to get the amount and currency
             intent = stripe.PaymentIntent.retrieve(payment_intent_id)
 
+            if intent.status != 'succeeded':
+                logger.error("Payment was not successful.")
+                return jsonify({"success": False, "error": "Payment was not successful."})
+
             # Assuming user is logged in and we have guest_id
-            guest_id = 1  # Replace with actual guest_id from session
+            guest_id = session.get('guest_id')
+
+            if not guest_id:
+                return jsonify({"success": False, "error": "Guest not logged in."})
 
             # Create a new booking
             booking = Booking(
@@ -510,6 +533,7 @@ def init_routes(app):
             logger.error(f"Error completing booking: {str(e)}")
             db.session.rollback()
             return jsonify({"success": False, "error": str(e)})
+
 
     @app.route('/api/booking_summary', methods=['GET'])
     def booking_summary():
@@ -561,8 +585,8 @@ def init_routes(app):
     @app.route('/booking_summary')
     def booking_summary_page():
         payment_intent = request.args.get('payment_intent')
-        payment_success = request.args.get('success', 'false') == 'true'
-        
+        payment_success = request.args.get('payment_intent') != 'failed'
+
         if payment_intent:
             payment = Payment.query.filter_by(stripe_payment_id=payment_intent).first()
             if payment and payment.status == 'succeeded':
@@ -570,27 +594,7 @@ def init_routes(app):
 
         return render_template('booking_summary.html', payment_success=payment_success)
     
-    @app.route('/select_seats')
-    def seat_selection_page():
-        event_id = request.args.get('event_id')
-        if not event_id:
-            logger.error('Event ID is missing in the URL.')
-            return redirect(url_for('home'))  # Redirect to home or an appropriate page if event_id is missing
-
-        # Fetch booked seats for the event
-        booked_seat_numbers = db.session.query(Seat.seat_number).filter(Seat.event_id == event_id).all()
-        booked_seat_numbers = [seat[0] for seat in booked_seat_numbers]  # Unpack tuples
-        logger.info('Fetched Booked Seat Numbers: %s', booked_seat_numbers)  # Debugging line
-
-        guest_id = session.get('guest_id')  # Replace with actual guest_id from session or context
-        if guest_id is None:
-            logger.error('Guest ID is not available in the session.')
-            return redirect(url_for('login'))  # Redirect to login if guest_id is not available
-
-        seat_labels = generate_seat_labels(10, 20)  # Example seat labels, replace with actual logic
-
-        return render_template('seat_selection.html', event_id=event_id, guest_id=guest_id, booked_seat_numbers=booked_seat_numbers, seat_labels=seat_labels)
-
+    
     @app.route('/api/booked_seats', methods=['GET'])
     def booked_seats():
         event_id = request.args.get('event_id')

@@ -74,6 +74,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.error("Payment failed:", result.error.message);
                 // Show error to your customer (e.g., insufficient funds)
                 document.getElementById("card-errors").textContent = result.error.message;
+                // Redirect to booking summary with failed note
+                window.location.href = `/booking_summary?payment_intent=failed`;
             } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
                 console.log("Payment succeeded:", result.paymentIntent);
                 // Save payment and booking details to the server

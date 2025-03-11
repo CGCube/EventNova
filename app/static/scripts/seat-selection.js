@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add event listener for seat selection
     seatCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
-            const label = document.querySelector(`label[for="${checkbox.id}"]`);
-            if (checkbox.checked) {
+            const label = document.querySelector(`label[for="${checkbox.id}\"]`);
+            if (checkbox.checked && !checkbox.disabled) {
                 label.classList.add('btn-success', 'text-white', 'border-success');
             } else {
                 label.classList.remove('btn-success', 'text-white', 'border-success');
@@ -36,14 +36,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Initial check for already selected seats
-        if (checkbox.checked) {
-            const label = document.querySelector(`label[for="${checkbox.id}"]`);
+        if (checkbox.checked && !checkbox.disabled) {
+            const label = document.querySelector(`label[for="${checkbox.id}\"]`);
             label.classList.add('btn-success', 'text-white', 'border-success');
         }
     });
 
     function updateConfirmButton() {
-        const selectedSeats = document.querySelectorAll('.btn-check:checked');
+        const selectedSeats = Array.from(document.querySelectorAll('.btn-check:checked:not(:disabled)'))
+            .map(seat => seat.value);
         console.log("Selected seats: ", selectedSeats.length); // Debugging line
     }
 
@@ -51,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmButton.addEventListener('click', function(event) {
         event.preventDefault();
 
-        const selectedSeats = Array.from(document.querySelectorAll('.btn-check:checked'))
+        const selectedSeats = Array.from(document.querySelectorAll('.btn-check:checked:not(:disabled)'))
             .map(seat => seat.value);
 
         if (selectedSeats.length === 0) {
@@ -59,13 +60,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const noOfSeats = selectedSeats.length;
-
         // Store the values in appropriate variables
         const bookingDetails = {
             guest_id: guestId,
             event_id: eventId,
-            number_of_seats: noOfSeats,
             seat_numbers: selectedSeats
         };
 
