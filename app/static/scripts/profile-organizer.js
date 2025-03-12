@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const navLinks = document.querySelectorAll('.sticky-sidebar .nav-link');
     const sections = document.querySelectorAll("div[id$='-section']");
 
+    const eventsList = document.getElementById("events-list");
+
     // Function to handle the mouse move event
     const handleMouseMove = (e) => {
         let current = '';
@@ -137,12 +139,24 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                profileForm.elements["organizer_id"].value = data.profile.organizer_id;
-                profileForm.elements["name"].value = data.profile.name;
-                profileForm.elements["email"].value = data.profile.email;
-                profileForm.elements["description"].value = data.profile.description;
-                profileForm.elements["phone"].value = data.profile.phone;
-                profileForm.elements["username"].value = data.profile.organizer_id; // Assuming organizer_id is used as the username
+                if (profileForm.elements["organizer_id"]) {
+                    profileForm.elements["organizer_id"].value = data.profile.organizer_id;
+                }
+                if (profileForm.elements["name"]) {
+                    profileForm.elements["name"].value = data.profile.name;
+                }
+                if (profileForm.elements["email"]) {
+                    profileForm.elements["email"].value = data.profile.email;
+                }
+                if (profileForm.elements["description"]) {
+                    profileForm.elements["description"].value = data.profile.description;
+                }
+                if (profileForm.elements["phone"]) {
+                    profileForm.elements["phone"].value = data.profile.phone;
+                }
+                if (profileForm.elements["username"]) {
+                    profileForm.elements["username"].value = data.profile.organizer_id; // Assuming organizer_id is used as the username
+                }
             } else {
                 alert("Failed to fetch profile data.");
             }
@@ -154,13 +168,15 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(data => {
             if (data.success) {
                 const orderHistoryList = document.getElementById("order-history-list");
-                orderHistoryList.innerHTML = "";
-                data.orders.forEach(order => {
-                    const listItem = document.createElement("li");
-                    listItem.classList.add("list-group-item");
-                    listItem.innerHTML = `<strong>${order.type}:</strong> ${order.name} | <strong>Date:</strong> ${order.date}`;
-                    orderHistoryList.appendChild(listItem);
-                });
+                if(orderHistoryList) {
+                    orderHistoryList.innerHTML = "";
+                    data.orders.forEach(order => {
+                        const listItem = document.createElement("li");
+                        listItem.classList.add("list-group-item");
+                        listItem.innerHTML = `<strong>${order.type}:</strong> ${order.name} | <strong>Date:</strong> ${order.date}`;
+                        orderHistoryList.appendChild(listItem);
+                    });
+                }
             } else {
                 alert("Failed to fetch order history.");
             }
@@ -184,4 +200,46 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     });
+
+    // Fetch organizer events and populate the events section
+    fetch("/get_organizer_events")
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if(eventsList) {
+                    eventsList.innerHTML = "";
+                    data.events.forEach(event => {
+                        const eventItem = document.createElement("div");
+                        eventItem.classList.add("row", "mb-2");
+                        eventItem.innerHTML = `
+                            <div class="col-md-3">${event.event_name}</div>
+                            <div class="col-md-2"><a href="/event_stats?event_id=${event.event_id}"><i class="bi bi-bar-chart-fill"></i></a></div>
+                            <div class="col-md-2"><a href="/update_event?event_id=${event.event_id}"><i class="bi bi-pencil-square"></i></a></div>
+                            <div class="col-md-2"><i class="bi bi-trash" data-event-id="${event.event_id}" onclick="deleteEvent(${event.event_id})"></i></div>
+                        `;
+                        eventsList.appendChild(eventItem);
+                    });
+                }
+            } else {
+                alert("Failed to fetch organizer events.");
+            }
+        });
+
+    // Function to delete an event
+    window.deleteEvent = function(eventId) {
+        if (confirm("Are you sure you want to delete this event?")) {
+            fetch(`/delete_event?event_id=${eventId}`, {
+                method: "POST"
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Event deleted successfully.");
+                    location.reload(); // Reload the page to update the events list
+                } else {
+                    alert("Failed to delete event.");
+                }
+            });
+        }
+    }
 });

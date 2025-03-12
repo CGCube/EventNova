@@ -9,6 +9,8 @@
 <div class="container mt-5">
     <h1 class="text-center">Add New Event</h1>
     <form id="add-event-form" class="mt-4">
+        <input type="hidden" id="organizer-id" value="{{ organizer_id }}">
+        <input type="hidden" id="available-seats" value="200"> <!-- Hidden field for available seats -->
         <div class="form-group">
             <label for="event-name">Event Name</label>
             <input type="text" class="form-control" id="event-name" required>
@@ -51,10 +53,6 @@
             <input type="number" class="form-control" id="price-per-seat" min="1" required>
         </div>
         <div class="form-group">
-            <label for="tags">Tags</label>
-            <input type="text" class="form-control" id="tags" placeholder="Comma-separated tags" required>
-        </div>
-        <div class="form-group">
             <label for="genre">Genre</label>
             <select class="form-control" id="genre" required>
                 <option value="" disabled selected>Select Genre</option>
@@ -75,8 +73,12 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="thumbnail">Thumbnail</label>
-            <input type="file" class="form-control-file" id="thumbnail" required>
+            <label for="thumbnail">Thumbnail URL</label>
+            <input type="text" class="form-control" id="thumbnail" required>
+        </div>
+        <div class="form-group">
+            <label for="event-description">Event Description</label>
+            <textarea class="form-control" id="event-description" rows="3" required></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Add Event</button>
     </form>

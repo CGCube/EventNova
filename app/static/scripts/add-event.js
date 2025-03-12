@@ -1,10 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('add-event-form');
 
-    form.addEventListener('submit', function(event) {
+    form.addEventListener('submit', async function(event) {
         event.preventDefault(); // Prevent the default form submission
 
         // Get form values
+        const organizerId = document.getElementById('organizer-id').value;
         const eventName = document.getElementById('event-name').value;
         const eventType = document.getElementById('event-type').value;
         const eventDate = document.getElementById('event-date').value;
@@ -12,31 +13,58 @@ document.addEventListener('DOMContentLoaded', function() {
         const venue = document.getElementById('venue').value;
         const city = document.getElementById('city').value;
         const pricePerSeat = document.getElementById('price-per-seat').value;
-        const tags = document.getElementById('tags').value;
+        const availableSeats = document.getElementById('available-seats').value; // Hidden field
         const genre = document.getElementById('genre').value;
-        const thumbnail = document.getElementById('thumbnail').files[0];
+        const thumbnailUrl = document.getElementById('thumbnail').value;
+        const eventDescription = document.getElementById('event-description').value;
 
-        // Create an event object
+        // Check if organizerId is empty
+        if (!organizerId) {
+            alert('Organizer ID is missing. Please log in again.');
+            return;
+        }
+
+        // Create an event object with only the fields that have values
         const newEvent = {
-            name: eventName,
-            type: eventType,
-            date: eventDate,
-            time: eventTime,
+            organizer_id: organizerId,
+            event_name: eventName,
+            event_type: eventType,
+            event_date: eventDate,
+            event_time: eventTime,
             venue: venue,
             city: city,
-            pricePerSeat: pricePerSeat,
-            tags: tags.split(',').map(tag => tag.trim()),
+            price_per_seat: pricePerSeat,
+            available_seats: availableSeats, // Hidden field
             genre: genre,
-            thumbnail: thumbnail ? thumbnail.name : ''
+            thumbnail: thumbnailUrl,
+            event_description: eventDescription
         };
 
-        // Log the event object to the console (or send to a server)
-        console.log('New Event:', newEvent);
-
-        // Optionally, you can reset the form after submission
-        form.reset();
-
-        // Display a success message or redirect the user
-        alert('Event added successfully!');
+        // Send the new event data to the server
+        fetch('/add_event', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newEvent),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('Event added successfully!');
+                form.reset();
+            } else {
+                alert('Failed to add event.');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding event:', error);
+            alert('An error occurred while adding the event.');
+        });
     });
 });

@@ -150,17 +150,42 @@ def init_routes(app):
         selected_seats = []  # Example selected seats
 
         return render_template('seat_selection.html', isLoggedIn=True, event_id=event_id, guest_id=guest_id, booked_seat_numbers=booked_seat_numbers, seat_labels=seat_labels, selected_seats=selected_seats, currentUserLocation=currentUserLocation)
-    
-    if isLoggedIn & (UserType == "organizer"):
-        @app.route('/add-event')
-        def add_event():
-            return render_template('add_event.html', currentUserLocation=currentUserLocation)
-        @app.route('/update-event')
-        def edit_event():
-            return render_template('update_event.html', currentUserLocation=currentUserLocation)
-        @app.route('/event-stats')
-        def event_stats():
-            return render_template('event_stats.html', currentUserLocation=currentUserLocation)
+
+    @app.route('/event_stats')
+    def event_stats():
+        if not isLoggedIn or UserType != "organizer":
+            return redirect(url_for('login'))
+
+        event_id = request.args.get('event_id')
+        event = Event.query.get(event_id)
+
+        if not event:
+            return "Event not found", 404
+
+        return render_template('event_stats.html', event=event)
+
+    @app.route('/api/event_stats')
+    def api_event_stats():
+        if not isLoggedIn or UserType != "organizer":
+            return jsonify({"success": False, "message": "User not logged in or not an organizer"})
+
+        event_id = request.args.get('event_id')
+        event = Event.query.get(event_id)
+
+        if not event:
+            return jsonify({"success": False, "message": "Event not found"})
+
+        reviews = Review.query.filter_by(event_id=event_id).all()
+        bookings = db.session.query(Guest.gname, Booking.number_of_tickets).join(Booking, Guest.guest_id == Booking.guest_id).filter(Booking.event_id == event_id).all()
+
+        event_stats = {
+            "name": event.event_name,
+            "ticketsBooked": sum([booking.number_of_tickets for booking in bookings]),
+            "reviews": [{"review_text": review.review_text} for review in reviews],
+            "bookings": [{"guest_name": booking.gname, "number_of_tickets": booking.number_of_tickets} for booking in bookings]
+        }
+
+        return jsonify({"success": True, "event_stats": event_stats})
 
     @app.route('/profile')
     def user_profile():
@@ -168,7 +193,7 @@ def init_routes(app):
             if UserType == "guest":
                 return render_template('profile_guest.html', currentUserLocation=currentUserLocation)
             elif UserType == "organizer":
-                return render_template('profile_organizer.html', currentUserLocation=currentUserLocation)
+                return render_template('profile_organizer.html', currentUserLocation=currentUserLocation, currentUser=session.get('currentUser'))
         else:
             return 'NOT LOGGED IN'
 
@@ -592,7 +617,7 @@ def init_routes(app):
             if payment and payment.status == 'succeeded':
                 payment_success = True
 
-        return render_template('booking_summary.html', payment_success=payment_success)
+        return render_template('booking_summary.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation, payment_success=payment_success)
     
     
     @app.route('/api/booked_seats', methods=['GET'])
@@ -634,3 +659,154 @@ def init_routes(app):
         except Exception as e:
             logger.error(f"Error fetching booking history: {str(e)}")
             return jsonify({"success": False, "message": "Error fetching booking history."}), 500
+        
+    @app.route('/get_organizer_events')
+    def get_organizer_events():
+        if not isLoggedIn or UserType != "organizer":
+            return jsonify({"success": False, "message": "User not logged in or not an organizer"})
+
+        organizer_id = session.get('organizer_id')
+        if not organizer_id:
+            return jsonify({"success": False, "message": "Organizer ID not found in session"})
+
+        events = Event.query.filter_by(organizer_id=organizer_id).all()
+        events_list = [{"event_name": event.event_name, "event_id": event.event_id} for event in events]
+
+        return jsonify({"success": True, "events": events_list})
+
+    @app.route('/delete_event', methods=['POST'])
+    def delete_event():
+        if not isLoggedIn or UserType != "organizer":
+            return jsonify({"success": False, "message": "User not logged in or not an organizer"})
+
+        event_id = request.args.get('event_id')
+        if not event_id:
+            return jsonify({"success": False, "message": "Event ID not provided"})
+
+        event = Event.query.get(event_id)
+        if not event or event.organizer_id != session.get('organizer_id'):
+            return jsonify({"success": False, "message": "Event not found or not authorized"})
+
+        db.session.delete(event)
+        db.session.commit()
+
+        return jsonify({"success": True, "message": "Event deleted successfully"})
+    
+    @app.route('/update_event', methods=['GET'])
+    def update_event_page():
+        if not isLoggedIn or UserType != "organizer":
+            return redirect(url_for('login'))
+
+        event_id = request.args.get('event_id')
+        event = Event.query.get(event_id)
+
+        if not event:
+            return "Event not found", 404
+
+        return render_template('update_event.html', event=event)
+
+
+    @app.route('/api/event_details')
+    def api_event_details():
+        if not isLoggedIn or UserType != "organizer":
+            return jsonify({"success": False, "message": "User not logged in or not an organizer"})
+
+        event_id = request.args.get('event_id')
+        if not event_id:
+            return jsonify({"success": False, "message": "Event ID is required"}), 400
+
+        event = Event.query.get(event_id)
+        if not event:
+            return jsonify({"success": False, "message": "Event not found"}), 404
+
+        event_details = {
+            "event_name": event.event_name,
+            "event_type": event.event_type,
+            "date": event.date.strftime('%Y-%m-%d'),
+            "time": event.time.strftime('%H:%M:%S'),
+            "venue": event.venue,
+            "city": event.city,
+            "price": event.price,
+            "genre": event.genre,
+            "thumbnail": event.event_thumbnail,
+        }
+
+        return jsonify({"success": True, "event": event_details})
+
+    @app.route('/update_event', methods=['POST'])
+    def update_event():
+        if not isLoggedIn or UserType != "organizer":
+            return jsonify({"success": False, "message": "User not logged in or not an organizer"})
+
+        data = request.json
+        event_id = data.get('event_id')
+        if not event_id:
+            return jsonify({"success": False, "message": "Event ID is required"}), 400
+
+        event = Event.query.get(event_id)
+        if not event:
+            return jsonify({"success": False, "message": "Event not found"}), 404
+
+        if 'name' in data:
+            event.event_name = data['name']
+        if 'type' in data:
+            event.event_type = data['type']
+        if 'date' in data:
+            event.date = data['date']
+        if 'time' in data:
+            event.time = data['time']
+        if 'venue' in data:
+            event.venue = data['venue']
+        if 'city' in data:
+            event.city = data['city']
+        if 'pricePerSeat' in data:
+            event.price = data['pricePerSeat']
+        if 'genre' in data:
+            event.genre = data['genre']
+        if 'thumbnail' in data:
+            event.event_thumbnail = data['thumbnail']
+
+        db.session.commit()
+
+        return jsonify({"success": True, "message": "Event updated successfully"})
+    
+
+    @app.route('/add_event')
+    def add_event():
+        if isLoggedIn and UserType == "organizer":
+            organizer_id = session.get('organizer_id', None)
+            return render_template('add_event.html', organizer_id=organizer_id, currentUserLocation=currentUserLocation)
+        else:
+            return redirect(url_for('login'))
+
+    @app.route('/add_event', methods=['POST'])
+    def handle_add_event():
+        if not isLoggedIn or UserType != "organizer":
+            return jsonify({"success": False, "message": "User not logged in or not an organizer"})
+
+        data = request.get_json()
+        if not all(key in data for key in ('organizer_id', 'event_name', 'event_type', 'event_date', 'event_time', 'venue', 'city', 'price_per_seat', 'available_seats', 'genre', 'thumbnail', 'event_description')):
+            return jsonify({"success": False, "message": "Missing required fields"}), 400
+
+        if not data['organizer_id']:
+            return jsonify({"success": False, "message": "Organizer ID is required"}), 400
+
+        new_event = Event(
+            organizer_id=data['organizer_id'],
+            event_name=data['event_name'],
+            event_type=data['event_type'],
+            date=data['event_date'],
+            time=data['event_time'],
+            venue=data['venue'],
+            city=data['city'],
+            price=data['price_per_seat'],
+            available_seats=data['available_seats'],
+            genre=data['genre'],
+            event_thumbnail=data['thumbnail'],
+            event_description=data['event_description']
+        )
+
+        db.session.add(new_event)
+        db.session.commit()
+
+        return jsonify({"success": True, "message": "Event added successfully"})
