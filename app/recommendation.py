@@ -3,8 +3,8 @@ from app.models import Booking, Event
 
 def get_trending(user_id):
     # Placeholder for the recommendation algorithm
-    # For now, we will just recommend the top 5 most booked events/movies
-    bookings = db.session.query(Booking.event_id, db.func.count(Booking.event_id).label('count')).group_by(Booking.event_id).order_by(db.desc('count')).limit(5).all()
+    # For now, we will just recommend the top 5 events/movies with the most booked seats
+    bookings = db.session.query(Booking.event_id, db.func.sum(Booking.number_of_tickets).label('total_seats')).group_by(Booking.event_id).order_by(db.desc('total_seats')).limit(5).all()
     trending = []
     for booking in bookings:
         event = Event.query.get(booking.event_id)
