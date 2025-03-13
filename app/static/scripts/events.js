@@ -1,61 +1,58 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener('DOMContentLoaded', function () {
     const eventsContainer = document.getElementById('events-container');
-    const loadingElement = document.getElementById('loading');
-    let page = 1;
-    let isLoading = false;
-    let hasMoreEvents = true;
+    const loadingIndicator = document.getElementById('loading');
+    let loading = false;
+    let eventIndex = 0;
+    let events = [];
 
-    async function fetchEvents(page) {
-        if (isLoading || !hasMoreEvents) return;
-        isLoading = true;
-        loadingElement.style.display = 'block';
+    function loadEvents() {
+        if (loading || eventIndex >= events.length) return;
+        loading = true;
+        loadingIndicator.style.display = 'block';
 
-        try {
-            // Simulating a fetch with static data for demonstration
-            const data = {
-                events: Array.from({ length: 8 }, (_, i) => ({
-                    image: `https://picsum.photos/200/300?random=${(page - 1) * 8 + i + 1}`,
-                    title: `Event ${(page - 1) * 8 + i + 1}`,
-                    description: `Description for Event ${(page - 1) * 8 + i + 1}`,
-                    link: '#'
-                }))
-            };
+        const eventsToLoad = events.slice(eventIndex, eventIndex + 8);
+        eventsToLoad.forEach(event => {
+            const eventCard = document.createElement('div');
+            eventCard.className = 'col-md-3';
+            eventCard.innerHTML = `
+                <div class="card mb-4">
+                    <img src="${event.event_thumbnail}" class="card-img-top" alt="${event.event_name}">
+                    <div class="card-body">
+                        <h5 class="card-title">${event.event_name}</h5>
+                        <p class="card-text">${event.event_description}</p>
+                        <a href="/view_description?event_id=${event.event_id}" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
+                    </div>
+                </div>
+            `;
+            eventsContainer.appendChild(eventCard);
+        });
 
-            if (data.events.length === 0) {
-                hasMoreEvents = false;
-                loadingElement.textContent = 'No more events';
+        eventIndex += 8;
+        loading = false;
+        if (eventIndex >= events.length) {
+            loadingIndicator.textContent = 'No more events to load.';
+        } else {
+            loadingIndicator.style.display = 'none';
+        }
+    }
+
+    fetch('/api/events')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.events) {
+                events = data.events.events;
+                loadEvents(); // Initial load
             } else {
-                data.events.forEach(event => {
-                    const eventElement = document.createElement('div');
-                    eventElement.classList.add('col-md-3');
-                    eventElement.innerHTML = `
-                        <div class="card mb-4">
-                            <img src="${event.image}" class="card-img-top" alt="${event.title}">
-                            <div class="card-body">
-                                <h5 class="card-title">${event.title}</h5>
-                                <p class="card-text">${event.description}</p>
-                                <a href="${event.link}" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
-                            </div>
-                        </div>
-                    `;
-                    eventsContainer.appendChild(eventElement);
-                });
+                console.error('Unexpected response format:', data);
             }
-        } catch (error) {
-            console.error('Error fetching events:', error);
-        }
+        })
+        .catch(error => {
+            console.error('Error loading events:', error);
+        });
 
-        loadingElement.style.display = 'none';
-        isLoading = false;
-    }
-
-    function handleScroll() {
+    window.addEventListener('scroll', () => {
         if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
-            page++;
-            fetchEvents(page);
+            loadEvents();
         }
-    }
-
-    window.addEventListener('scroll', handleScroll);
-    fetchEvents(page);
+    });
 });

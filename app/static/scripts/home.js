@@ -17,48 +17,57 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(data.status_message);
             }
             console.log('Data received:', data);
-            const { movies, shows } = data.events;
+            const { movies, events, shows } = data.events;
 
-            const movieCards = document.querySelectorAll('.movie-card');
-            movies.forEach((movie, index) => {
-                if (index < movieCards.length) {
-                    const movieCard = movieCards[index];
-                    const imgElement = movieCard.querySelector('.card-img-top');
-                    const titleElement = movieCard.querySelector('.card-title');
-                    const textElement = movieCard.querySelector('.card-text');
-                    const btnElement = movieCard.querySelector('.btn');
-                    
-                    if (imgElement && titleElement && textElement && btnElement) {
-                        imgElement.src = movie.event_thumbnail;
-                        imgElement.alt = movie.event_name;
-                        titleElement.textContent = truncateText(movie.event_name, 25); // Truncate to 25 characters
-                        textElement.textContent = truncateText(movie.event_description, 50); // Truncate to 50 characters
-                        btnElement.href = `/view_description?event_id=${movie.event_id}`;
-                    } else {
-                        console.warn('Some elements are missing in the card structure.');
-                    }
-                }
+            const movieCards = document.getElementById('movie-cards');
+            movies.forEach((movie) => {
+                const movieCard = document.createElement('div');
+                movieCard.classList.add('col-md-3');
+                movieCard.innerHTML = `
+                    <div class="card mb-4">
+                        <img src="${movie.event_thumbnail}" class="card-img-top" alt="${movie.event_name}">
+                        <div class="card-body">
+                            <h5 class="card-title">${truncateText(movie.event_name, 25)}</h5>
+                            <p class="card-text">${truncateText(movie.event_description, 50)}</p>
+                            <a href="/view_description?event_id=${movie.event_id}" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
+                        </div>
+                    </div>
+                `;
+                movieCards.appendChild(movieCard);
             });
 
-            const showCards = document.querySelectorAll('.show-card');
-            shows.forEach((show, index) => {
-                if (index < showCards.length) {
-                    const showCard = showCards[index];
-                    const imgElement = showCard.querySelector('.card-img-top');
-                    const titleElement = showCard.querySelector('.card-title');
-                    const textElement = showCard.querySelector('.card-text');
-                    const btnElement = showCard.querySelector('.btn');
-                    
-                    if (imgElement && titleElement && textElement && btnElement) {
-                        imgElement.src = show.event_thumbnail;
-                        imgElement.alt = show.event_name;
-                        titleElement.textContent = truncateText(show.event_name, 25); // Truncate to 25 characters
-                        textElement.textContent = truncateText(show.event_description, 50); // Truncate to 50 characters
-                        btnElement.href = `/view_description?event_id=${show.event_id}`;
-                    } else {
-                        console.warn('Some elements are missing in the card structure.');
-                    }
-                }
+            const eventCards = document.getElementById('event-cards');
+            events.forEach((event) => {
+                const eventCard = document.createElement('div');
+                eventCard.classList.add('col-md-3');
+                eventCard.innerHTML = `
+                    <div class="card mb-4">
+                        <img src="${event.event_thumbnail}" class="card-img-top" alt="${event.event_name}">
+                        <div class="card-body">
+                            <h5 class="card-title">${truncateText(event.event_name, 25)}</h5>
+                            <p class="card-text">${truncateText(event.event_description, 50)}</p>
+                            <a href="/view_description?event_id=${event.event_id}" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
+                        </div>
+                    </div>
+                `;
+                eventCards.appendChild(eventCard);
+            });
+
+            const showCards = document.getElementById('show-cards');
+            shows.forEach((show) => {
+                const showCard = document.createElement('div');
+                showCard.classList.add('col-md-3');
+                showCard.innerHTML = `
+                    <div class="card mb-4">
+                        <img src="${show.event_thumbnail}" class="card-img-top" alt="${show.event_name}">
+                        <div class="card-body">
+                            <h5 class="card-title">${truncateText(show.event_name, 25)}</h5>
+                            <p class="card-text">${truncateText(show.event_description, 50)}</p>
+                            <a href="/view_description?event_id=${show.event_id}" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
+                        </div>
+                    </div>
+                `;
+                showCards.appendChild(showCard);
             });
         })
         .catch(error => console.error('Error fetching events:', error));

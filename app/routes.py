@@ -6,6 +6,8 @@ import random
 from datetime import datetime
 import stripe
 from app.config import Config
+from .recommendation import get_trending
+
 
 # Setting up logging
 logging.basicConfig(level=logging.INFO)
@@ -30,7 +32,8 @@ def init_routes(app):
 
     @app.route('/')
     def index():
-        return render_template('home.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation)
+        trending = get_trending(session.get('guest_id'))
+        return render_template('home.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation, trending=trending)
 
     @app.route('/signup_guest')
     def signup_guest():
@@ -49,6 +52,14 @@ def init_routes(app):
         location_filter = currentUserLocation if currentUserLocation else ""
         events = Event.query.filter_by(event_type='show', city=location_filter).all() if location_filter else Event.query.filter_by(event_type='show').all()
         return render_template('shows.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation, events=events)
+    
+    @app.route('/events')
+    def events():
+        location_filter = currentUserLocation if currentUserLocation else ""
+        events = Event.query.filter_by(event_type='event', city=location_filter).all() if location_filter else Event.query.filter_by(event_type='event').all()
+        return render_template('events.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation, events=events)
+
+
 
     @app.route('/movies')
     def movies():
@@ -126,6 +137,10 @@ def init_routes(app):
 
     @app.route('/select_seats', methods=['GET', 'POST'])
     def select_seats():
+
+        if not isLoggedIn:
+            return redirect(url_for('login'))
+
         if request.method == 'POST':
             selected_seats = request.form.getlist('seats')
             event_id = request.form.get('event_id')  # Get event_id from form
@@ -189,16 +204,21 @@ def init_routes(app):
 
     @app.route('/profile')
     def user_profile():
-        if isLoggedIn:
-            if UserType == "guest":
-                return render_template('profile_guest.html', currentUserLocation=currentUserLocation)
-            elif UserType == "organizer":
-                return render_template('profile_organizer.html', currentUserLocation=currentUserLocation, currentUser=session.get('currentUser'))
+        if not isLoggedIn:
+            return redirect(url_for('login'))
+
+        if UserType == "guest":
+            return render_template('profile_guest.html', currentUserLocation=currentUserLocation)
+        elif UserType == "organizer":
+            return render_template('profile_organizer.html', currentUserLocation=currentUserLocation, currentUser=session.get('currentUser'))
         else:
-            return 'NOT LOGGED IN'
+            return redirect(url_for('login'))
 
     @app.route('/booking_confirmation')
     def booking_confirmation():
+        if not isLoggedIn:
+            return redirect(url_for('login'))
+        
         seats = request.args.get('seats', '')  # Get selected seats from query parameters
         seat_list = seats.split(',') if seats else []
         event_id = request.args.get('event_id')  # Get event_id from query parameters
@@ -377,11 +397,13 @@ def init_routes(app):
     @app.route('/api/events')
     def api_events():
         location_filter = currentUserLocation if currentUserLocation else ""
-        movies = Event.query.filter_by(event_type='movie', city=location_filter).all() if location_filter else Event.query.filter_by(event_type='movie').all()
-        shows = Event.query.filter_by(event_type='show', city=location_filter).all() if location_filter else Event.query.filter_by(event_type='show').all()
+        movies_query = Event.query.filter_by(event_type='movie', city=location_filter) if location_filter else Event.query.filter_by(event_type='movie')
+        shows_query = Event.query.filter_by(event_type='show', city=location_filter) if location_filter else Event.query.filter_by(event_type='show')
+        events_query = Event.query.filter_by(event_type='event', city=location_filter) if location_filter else Event.query.filter_by(event_type='event')
         
-        random.shuffle(movies)
-        random.shuffle(shows)
+        movies = movies_query.order_by(db.func.random()).limit(4).all()
+        shows = shows_query.order_by(db.func.random()).limit(4).all()
+        events = events_query.order_by(db.func.random()).limit(4).all()
         
         events_list = {
             "movies": [
@@ -417,6 +439,23 @@ def init_routes(app):
                     "available_seats": event.available_seats,
                     "event_description": event.event_description
                 } for event in shows
+            ],
+            "events": [
+                {
+                    "event_id": event.event_id,
+                    "organizer_id": event.organizer_id,
+                    "event_name": event.event_name,
+                    "event_thumbnail": event.event_thumbnail,
+                    "event_type": event.event_type,
+                    "genre": event.genre,
+                    "date": event.date.strftime('%Y-%m-%d'),
+                    "time": event.time.strftime('%H:%M:%S'),
+                    "venue": event.venue,
+                    "city": event.city,
+                    "price": float(event.price),
+                    "available_seats": event.available_seats,
+                    "event_description": event.event_description
+                } for event in events
             ]
         }
         return jsonify({"success": True, "events": events_list})
@@ -562,6 +601,9 @@ def init_routes(app):
 
     @app.route('/api/booking_summary', methods=['GET'])
     def booking_summary():
+        if not isLoggedIn:
+            return redirect(url_for('login'))
+
         payment_intent_id = request.args.get('payment_intent')
         if not payment_intent_id:
             logger.error("Missing payment_intent parameter")

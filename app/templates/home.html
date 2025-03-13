@@ -11,46 +11,22 @@
 
 {% block content %}
     <div class="container mt-4">
-        <!-- Movies Section -->
+        <!-- Trending Movies Section -->
         <div class="row mb-4">
             <div class="col">
-                <h2 class="d-inline">Movies</h2>
+                <h2 class="d-inline">Now Trending</h2>
                 <hr class="d-inline" style="width: 50px; height: 2px; background-color: #343a40; border: none;">
-                <a href="/movies" class="float-end" style="color: #343a40;">Show All</a>
             </div>
         </div>
-        <div class="row" id="movie-cards">
-            {% for item_index in range(4) %}
+        <div class="row" id="trending-cards">
+            {% for trending in trending %}
                 <div class="col-md-3">
-                    <div class="card mb-4 movie-card">
-                        <img src="https://picsum.photos/200/300?random={{ item_index + 1 }}" class="card-img-top" alt="Movie {{ item_index + 1 }}">
+                    <div class="card mb-4 trending-card">
+                        <img src="{{ trending.thumbnail }}" class="card-img-top" alt="{{ trending.name }}">
                         <div class="card-body">
-                            <h5 class="card-title">Movie {{ item_index + 1 }}</h5>
-                            <p class="card-text">Description for Movie {{ item_index + 1 }}</p>
-                            <a href="/view_description" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-
-        <!-- Events Section -->
-        <div class="row mb-4">
-            <div class="col">
-                <h2 class="d-inline">Events</h2>
-                <hr class="d-inline" style="width: 50px; height: 2px; background-color: #343a40; border: none;">
-                <a href="/events" class="float-end" style="color: #343a40;">Show All</a>
-            </div>
-        </div>
-        <div class="row" id="event-cards">
-            {% for item_index in range(4) %}
-                <div class="col-md-3">
-                    <div class="card mb-4 event-card">
-                        <img src="https://picsum.photos/200/300?random={{ item_index + 5 }}" class="card-img-top" alt="Event {{ item_index + 1 }}">
-                        <div class="card-body">
-                            <h5 class="card-title">Event {{ item_index + 1 }}</h5>
-                            <p class="card-text">Description for Event {{ item_index + 1 }}</p>
-                            <a href="/view_description" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
+                            <h5 class="card-title">{{ trending.name }}</h5>
+                            <p class="card-text">{{ trending.description }}</p>
+                            <a href="/view_description?event_id={{ trending.event_id }}" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
                         </div>
                     </div>
                 </div>
@@ -66,18 +42,31 @@
             </div>
         </div>
         <div class="row" id="show-cards">
-            {% for item_index in range(4) %}
-                <div class="col-md-3">
-                    <div class="card mb-4 show-card">
-                        <img src="https://picsum.photos/200/300?random={{ item_index + 9 }}" class="card-img-top" alt="Show {{ item_index + 1 }}">
-                        <div class="card-body">
-                            <h5 class="card-title">Show {{ item_index + 1 }}</h5>
-                            <p class="card-text">Description for Show {{ item_index + 1 }}</p>
-                            <a href="/view_description" class="btn" style="background-color: #212529; color: white;">Book Ticket</a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+            <!-- Show items will be appended here by JavaScript -->
+        </div>
+
+        <!-- Events Section -->
+        <div class="row mb-4">
+            <div class="col">
+                <h2 class="d-inline">Events</h2>
+                <hr class="d-inline" style="width: 50px; height: 2px; background-color: #343a40; border: none;">
+                <a href="/events" class="float-end" style="color: #343a40;">Show All</a>
+            </div>
+        </div>
+        <div class="row" id="event-cards">
+            <!-- Event items will be appended here by JavaScript -->
+        </div>
+
+        <!-- Movies Section -->
+        <div class="row mb-4">
+            <div class="col">
+                <h2 class="d-inline">Movies</h2>
+                <hr class="d-inline" style="width: 50px; height: 2px; background-color: #343a40; border: none;">
+                <a href="/movies" class="float-end" style="color: #343a40;">Show All</a>
+            </div>
+        </div>
+        <div class="row" id="movie-cards">
+            <!-- Movie items will be appended here by JavaScript -->
         </div>
     </div>
 {% endblock %}
