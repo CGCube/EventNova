@@ -6,7 +6,7 @@ import random
 from datetime import datetime
 import stripe
 from app.config import Config
-from .recommendation import get_trending
+from .recommendations import get_trending
 
 
 # Setting up logging
