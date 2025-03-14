@@ -1,12 +1,12 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, session, current_app
 from app import db
-from app.models import Guest, Organizer, Event, Review, Booking, Payment, Seat
+from app.models import *
 import logging
 import random
 from datetime import datetime
 import stripe
 from app.config import Config
-from .recommendations import get_trending
+from .recommendations import *
 
 
 # Setting up logging
@@ -32,8 +32,9 @@ def init_routes(app):
 
     @app.route('/')
     def index():
-        trending = get_trending(session.get('guest_id'))
-        return render_template('home.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation, trending=trending)
+        trending = get_trending(currentUser)
+        recommendations = get_recommendations(currentUser) if isLoggedIn else []
+        return render_template('home.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation, trending=trending, recommendations=recommendations)
 
     @app.route('/signup_guest')
     def signup_guest():

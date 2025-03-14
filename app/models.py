@@ -105,3 +105,13 @@ class Review(db.Model):
 
     event = db.relationship('Event', back_populates='reviews')
     guest = db.relationship('Guest', back_populates='reviews')
+
+
+class GuestGenre(db.Model):
+    __tablename__ = 'guest_genres'
+    guest_username = db.Column(db.String(100), primary_key=True)
+    event_id = db.Column(db.Integer, primary_key=True)
+    genre = db.Column(db.String(150), nullable=False)
+
+    def __repr__(self):
+        return f'<GuestGenre guest_username={self.guest_username} event_id={self.event_id} genre={self.genre}>'

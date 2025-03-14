@@ -109,7 +109,7 @@ values ('Snehith', 'snehith@example.com', 'password', '0987654321', 'snehith', '
 -- Create a view to store guest bookings with event genres
 CREATE VIEW guest_genres AS
 SELECT 
-    g.guest_id, 
+    g.gusername AS guest_username,  -- Updated from guest_id to gusername
     b.event_id, 
     e.genre
 FROM 
