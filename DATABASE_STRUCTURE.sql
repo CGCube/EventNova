@@ -105,6 +105,19 @@ values ('admin', 'admin@example.com', 'password', '1234567890', 'Test Organizer'
 insert into guests (gname, gemail, gpassword, gphone, gusername, glocation)
 values ('Snehith', 'snehith@example.com', 'password', '0987654321', 'snehith', 'Hyderabad'), 
        ('Gauri', 'gauri@example.com', 'password', '1234509876', 'gauri', 'Mumbai');
+
+-- Create a view to store guest bookings with event genres
+CREATE VIEW guest_genres AS
+SELECT 
+    g.guest_id, 
+    b.event_id, 
+    e.genre
+FROM 
+    guests g
+JOIN 
+    bookings b ON g.guest_id = b.guest_id
+JOIN 
+    events e ON b.event_id = e.event_id;
        
 INSERT INTO events (event_id, organizer_id, event_name, event_thumbnail, event_type, genre, date, time, venue, city, price, available_seats, event_description) VALUES
 (1, 1, 'Anora', 'https://image.tmdb.org/t/p/w500/qh8m8Udz0sCa5gy9VaqfHPh0yPM.jpg', 'movie', 'Drama, Comedy, Romance', '2026-02-08', '21:00:00', 'Riverside Pavilion', 'Surat', 100.00, 200, 'A young sex worker from Brooklyn gets her chance at a Cinderella story when she meets and impulsively marries the son of an oligarch. Once the news reaches Russia, her fairytale is threatened as his parents set out to get the marriage annulled.'),
