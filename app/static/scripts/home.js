@@ -1,11 +1,23 @@
 function selectLocation(location) {
     // Update the text of the Location dropdown
     document.getElementById('locationDropdown').textContent = location;
+
+    // Fetch events based on the selected location
+    fetchEvents(location);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Document loaded. Fetching events...');
-    fetch('/api/events') // Fetch events from the server
+    fetchEvents(); // Fetch events on initial load
+});
+
+function fetchEvents(location = '') {
+    let url = '/api/events';
+    if (location) {
+        url += `?location=${encodeURIComponent(location)}`;
+    }
+
+    fetch(url) // Fetch events from the server
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -20,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const { movies, events, shows } = data.events;
 
             const movieCards = document.getElementById('movie-cards');
+            movieCards.innerHTML = ''; // Clear existing cards
             movies.forEach((movie) => {
                 const movieCard = document.createElement('div');
                 movieCard.classList.add('col-md-3');
@@ -37,6 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const eventCards = document.getElementById('event-cards');
+            eventCards.innerHTML = ''; // Clear existing cards
             events.forEach((event) => {
                 const eventCard = document.createElement('div');
                 eventCard.classList.add('col-md-3');
@@ -54,6 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const showCards = document.getElementById('show-cards');
+            showCards.innerHTML = ''; // Clear existing cards
             shows.forEach((show) => {
                 const showCard = document.createElement('div');
                 showCard.classList.add('col-md-3');
@@ -71,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         })
         .catch(error => console.error('Error fetching events:', error));
-});
+}
 
 function truncateText(text, maxLength) {
     if (text.length > maxLength) {
