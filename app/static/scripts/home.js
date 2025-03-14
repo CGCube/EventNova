@@ -1,14 +1,22 @@
 function selectLocation(location) {
     // Update the text of the Location dropdown
     document.getElementById('locationDropdown').textContent = location;
-
+    // Store the location in localStorage
+    localStorage.setItem('selectedLocation', location);
     // Fetch events based on the selected location
     fetchEvents(location);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Document loaded. Fetching events...');
-    fetchEvents(); // Fetch events on initial load
+    // Fetch location from localStorage
+    const savedLocation = localStorage.getItem('selectedLocation');
+    if (savedLocation) {
+        document.getElementById('locationDropdown').textContent = savedLocation;
+        fetchEvents(savedLocation);
+    } else {
+        fetchEvents(); // Fetch events on initial load
+    }
 });
 
 function fetchEvents(location = '') {

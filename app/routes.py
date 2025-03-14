@@ -68,42 +68,124 @@ def init_routes(app):
         events = Event.query.filter_by(event_type='movie', city=location_filter).all() if location_filter else Event.query.filter_by(event_type='movie').all()
         return render_template('movies.html', isLoggedIn=isLoggedIn, currentUserLocation=currentUserLocation, events=events)
 
-    @app.route('/api/movies')
-    def api_movies():
-        try:
-            location_filter = currentUserLocation if currentUserLocation else ""
-            events = Event.query.filter_by(event_type='movie', city=location_filter).all() if location_filter else Event.query.filter_by(event_type='movie').all()
-            movies = []
-            for event in events:
-                movies.append({
+    @app.route('/api/events')
+    def api_events():
+        location_filter = request.args.get("location", "")
+        movies_query = Event.query.filter_by(event_type='movie', city=location_filter) if location_filter else Event.query.filter_by(event_type='movie')
+        shows_query = Event.query.filter_by(event_type='show', city=location_filter) if location_filter else Event.query.filter_by(event_type='show')
+        events_query = Event.query.filter_by(event_type='event', city=location_filter) if location_filter else Event.query.filter_by(event_type='event')
+        
+        movies = movies_query.order_by(db.func.random()).limit(4).all()
+        shows = shows_query.order_by(db.func.random()).limit(4).all()
+        events = events_query.order_by(db.func.random()).limit(4).all()
+        
+        events_list = {
+            "movies": [
+                {
                     "event_id": event.event_id,
-                    "event_name": event.event_name[:20] + "..." if len(event.event_name) > 20 else event.event_name,
+                    "organizer_id": event.organizer_id,
+                    "event_name": event.event_name,
                     "event_thumbnail": event.event_thumbnail,
-                    "event_description": event.event_description[:40] + "..." if len(event.event_description) > 40 else event.event_description
-                })
-            return jsonify({"movies": movies})
-        except Exception as e:
-            logging.error(f"Error fetching movies: {e}")
-            return jsonify({"error": "An error occurred while fetching movies."}), 500
+                    "event_type": event.event_type,
+                    "genre": event.genre,
+                    "date": event.date.strftime('%Y-%m-%d'),
+                    "time": event.time.strftime('%H:%M:%S'),
+                    "venue": event.venue,
+                    "city": event.city,
+                    "price": float(event.price),
+                    "available_seats": event.available_seats,
+                    "event_description": event.event_description
+                } for event in movies
+            ],
+            "shows": [
+                {
+                    "event_id": event.event_id,
+                    "organizer_id": event.organizer_id,
+                    "event_name": event.event_name,
+                    "event_thumbnail": event.event_thumbnail,
+                    "event_type": event.event_type,
+                    "genre": event.genre,
+                    "date": event.date.strftime('%Y-%m-%d'),
+                    "time": event.time.strftime('%H:%M:%S'),
+                    "venue": event.venue,
+                    "city": event.city,
+                    "price": float(event.price),
+                    "available_seats": event.available_seats,
+                    "event_description": event.event_description
+                } for event in shows
+            ],
+            "events": [
+                {
+                    "event_id": event.event_id,
+                    "organizer_id": event.organizer_id,
+                    "event_name": event.event_name,
+                    "event_thumbnail": event.event_thumbnail,
+                    "event_type": event.event_type,
+                    "genre": event.genre,
+                    "date": event.date.strftime('%Y-%m-%d'),
+                    "time": event.time.strftime('%H:%M:%S'),
+                    "venue": event.venue,
+                    "city": event.city,
+                    "price": float(event.price),
+                    "available_seats": event.available_seats,
+                    "event_description": event.event_description
+                } for event in events
+            ]
+        }
+        return jsonify({"success": True, "events": events_list})
 
     @app.route('/api/shows')
     def api_shows():
-        try:
-            location_filter = currentUserLocation if currentUserLocation else ""
-            events = Event.query.filter_by(event_type='show', city=location_filter).all() if location_filter else Event.query.filter_by(event_type='show').all()
-            shows = []
-            for event in events:
-                shows.append({
-                    "event_id": event.event_id,
-                    "event_name": event.event_name[:20] + "..." if len(event.event_name) > 20 else event.event_name,
-                    "event_thumbnail": event.event_thumbnail,
-                    "event_description": event.event_description[:40] + "..." if len(event.event_description) > 40 else event.event_description
-                })
-            return jsonify({"shows": shows})
-        except Exception as e:
-            logging.error(f"Error fetching shows: {e}")
-            return jsonify({"error": "An error occurred while fetching shows."}), 500
+        location_filter = request.args.get("location", "")
+        shows_query = Event.query.filter_by(event_type='show', city=location_filter) if location_filter else Event.query.filter_by(event_type='show')
+        
+        shows = shows_query.order_by(db.func.random()).limit(20).all()
+        
+        shows_list = [
+            {
+                "event_id": event.event_id,
+                "organizer_id": event.organizer_id,
+                "event_name": event.event_name,
+                "event_thumbnail": event.event_thumbnail,
+                "event_type": event.event_type,
+                "genre": event.genre,
+                "date": event.date.strftime('%Y-%m-%d'),
+                "time": event.time.strftime('%H:%M:%S'),
+                "venue": event.venue,
+                "city": event.city,
+                "price": float(event.price),
+                "available_seats": event.available_seats,
+                "event_description": event.event_description
+            } for event in shows
+        ]
+        return jsonify({"success": True, "shows": shows_list})
 
+    @app.route('/api/movies')
+    def api_movies():
+        location_filter = request.args.get("location", "")
+        movies_query = Event.query.filter_by(event_type='movie', city=location_filter) if location_filter else Event.query.filter_by(event_type='movie')
+        
+        movies = movies_query.order_by(db.func.random()).limit(20).all()
+        
+        movies_list = [
+            {
+                "event_id": event.event_id,
+                "organizer_id": event.organizer_id,
+                "event_name": event.event_name,
+                "event_thumbnail": event.event_thumbnail,
+                "event_type": event.event_type,
+                "genre": event.genre,
+                "date": event.date.strftime('%Y-%m-%d'),
+                "time": event.time.strftime('%H:%M:%S'),
+                "venue": event.venue,
+                "city": event.city,
+                "price": float(event.price),
+                "available_seats": event.available_seats,
+                "event_description": event.event_description
+            } for event in movies
+        ]
+        return jsonify({"success": True, "movies": movies_list})
+    
     @app.route('/view_description')
     def view_description():
         event_id = request.args.get('event_id')
@@ -395,71 +477,6 @@ def init_routes(app):
         ]
         return jsonify({"success": True, "orders": orders})
 
-    @app.route('/api/events')
-    def api_events():
-        location_filter = currentUserLocation if currentUserLocation else ""
-        movies_query = Event.query.filter_by(event_type='movie', city=location_filter) if location_filter else Event.query.filter_by(event_type='movie')
-        shows_query = Event.query.filter_by(event_type='show', city=location_filter) if location_filter else Event.query.filter_by(event_type='show')
-        events_query = Event.query.filter_by(event_type='event', city=location_filter) if location_filter else Event.query.filter_by(event_type='event')
-        
-        movies = movies_query.order_by(db.func.random()).limit(4).all()
-        shows = shows_query.order_by(db.func.random()).limit(4).all()
-        events = events_query.order_by(db.func.random()).limit(4).all()
-        
-        events_list = {
-            "movies": [
-                {
-                    "event_id": event.event_id,
-                    "organizer_id": event.organizer_id,
-                    "event_name": event.event_name,
-                    "event_thumbnail": event.event_thumbnail,
-                    "event_type": event.event_type,
-                    "genre": event.genre,
-                    "date": event.date.strftime('%Y-%m-%d'),
-                    "time": event.time.strftime('%H:%M:%S'),
-                    "venue": event.venue,
-                    "city": event.city,
-                    "price": float(event.price),
-                    "available_seats": event.available_seats,
-                    "event_description": event.event_description
-                } for event in movies
-            ],
-            "shows": [
-                {
-                    "event_id": event.event_id,
-                    "organizer_id": event.organizer_id,
-                    "event_name": event.event_name,
-                    "event_thumbnail": event.event_thumbnail,
-                    "event_type": event.event_type,
-                    "genre": event.genre,
-                    "date": event.date.strftime('%Y-%m-%d'),
-                    "time": event.time.strftime('%H:%M:%S'),
-                    "venue": event.venue,
-                    "city": event.city,
-                    "price": float(event.price),
-                    "available_seats": event.available_seats,
-                    "event_description": event.event_description
-                } for event in shows
-            ],
-            "events": [
-                {
-                    "event_id": event.event_id,
-                    "organizer_id": event.organizer_id,
-                    "event_name": event.event_name,
-                    "event_thumbnail": event.event_thumbnail,
-                    "event_type": event.event_type,
-                    "genre": event.genre,
-                    "date": event.date.strftime('%Y-%m-%d'),
-                    "time": event.time.strftime('%H:%M:%S'),
-                    "venue": event.venue,
-                    "city": event.city,
-                    "price": float(event.price),
-                    "available_seats": event.available_seats,
-                    "event_description": event.event_description
-                } for event in events
-            ]
-        }
-        return jsonify({"success": True, "events": events_list})
 
     @app.route('/api/event/<int:event_id>')
     def api_event(event_id):

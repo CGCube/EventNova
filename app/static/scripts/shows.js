@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    fetch('/api/shows')
+    fetch(`/api/shows?location=${encodeURIComponent(localStorage.getItem('selectedLocation') || '')}`)
         .then(response => response.json())
         .then(data => {
             if (data.shows) {
@@ -55,4 +55,10 @@ document.addEventListener('DOMContentLoaded', function () {
             loadShows();
         }
     });
+
+    // Fetch location from localStorage and update dropdown
+    const savedLocation = localStorage.getItem('selectedLocation');
+    if (savedLocation) {
+        document.getElementById('locationDropdown').textContent = savedLocation;
+    }
 });
