@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const ticketsBookedElement = document.getElementById('tickets-booked');
     const reviewsContainer = document.getElementById('reviews-container');
     const bookedTicketsTableBody = document.querySelector('#booked-tickets-table tbody');
+    const videoContainer = document.getElementById('video-container'); // Reference to video container
     
     const urlParams = new URLSearchParams(window.location.search);
     const eventId = urlParams.get('event_id');
@@ -28,6 +29,29 @@ document.addEventListener("DOMContentLoaded", function() {
             `;
             bookedTicketsTableBody.appendChild(row);
         });
+
+        // Fetch and render generated video
+        fetch(`/generate_video/${eventId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.video_url) {
+                    const videoElement = document.createElement('video');
+                    videoElement.setAttribute('controls', 'controls');
+                    videoElement.setAttribute('width', '100%');
+                    videoElement.innerHTML = `
+                        <source src="${data.video_url}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    `;
+                    videoContainer.innerHTML = ''; // Clear placeholder text
+                    videoContainer.appendChild(videoElement);
+                } else {
+                    videoContainer.textContent = 'No video available for this event.';
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching video:", error);
+                videoContainer.textContent = 'An error occurred while fetching the video.';
+            });
     }
 
     // Fetch event statistics from the server

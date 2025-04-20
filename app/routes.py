@@ -7,7 +7,12 @@ from datetime import datetime
 import stripe
 from app.config import Config
 from .recommendations import *
+from moviepy import *
+from flask import send_from_directory
 
+from flask import jsonify, url_for
+from moviepy.editor import TextClip, concatenate_videoclips
+import os
 
 # Setting up logging
 logging.basicConfig(level=logging.INFO)
@@ -870,3 +875,82 @@ def init_routes(app):
         db.session.commit()
 
         return jsonify({"success": True, "message": "Event added successfully"})
+    
+
+    @app.route('/generate_video/<int:event_id>', methods=['GET'])
+    def generate_video(event_id):
+        from moviepy.editor import TextClip, concatenate_videoclips
+        import os
+
+        # Configure the ImageMagick binary path for moviepy
+        from moviepy.config import change_settings
+        change_settings({"IMAGEMAGICK_BINARY": r"C:\Program Files\ImageMagick-7.1.1-Q16-HDRI\magick.exe"})
+
+        try:
+            # Path to the video directory inside /app/static/videos
+            video_dir = "app/static/videos"
+            video_path = os.path.join(video_dir, f"event_{event_id}.mp4")
+
+            # Ensure the directory exists
+            if not os.path.exists(video_dir):
+                os.makedirs(video_dir, exist_ok=True)  # Create the directory if it doesn't exist
+
+            # Check if the video already exists
+            if os.path.exists(video_path):
+                return jsonify({"video_url": url_for('static', filename=f'videos/event_{event_id}.mp4')})
+
+            # Fetch event data from the database
+            event = Event.query.get(event_id)
+            if not event:
+                return jsonify({"error": "Event not found"}), 404
+
+            # Test if ImageMagick is working by creating a small temporary clip
+            try:
+                test_clip = TextClip("Test", fontsize=24, color='white', bg_color='black', size=(640, 480)).set_duration(1)
+                test_clip.close()  # Clean up resources
+            except Exception as e:
+                raise EnvironmentError("ImageMagick is not installed or configured correctly. " +
+                                    "Ensure that ImageMagick is installed and the path is properly set.") from e
+
+            # Create a simple 5-second video
+            clips = [
+                TextClip(f"Event: {event.event_name}", fontsize=50, color='white', bg_color='black', size=(1280, 720)).set_duration(2.5),
+                TextClip(f"Date: {event.date}", fontsize=50, color='white', bg_color='black', size=(1280, 720)).set_duration(2.5)
+            ]
+            final_clip = concatenate_videoclips(clips, method="compose")
+
+            # Save the video to a file
+            app.logger.info(f"Saving video to: {video_path}")
+            final_clip.write_videofile(video_path, fps=24, codec="libx264")
+
+            # Verify if the file was created successfully
+            if not os.path.exists(video_path):
+                raise IOError(f"Failed to save the video file at: {video_path}")
+
+            # Return the video URL
+            return jsonify({"video_url": url_for('static', filename=f'videos/event_{event_id}.mp4')})
+
+        except EnvironmentError as e:
+            app.logger.error(f"EnvironmentError while generating video for event {event_id}: {e}")
+            return jsonify({"error": "ImageMagick is not installed or configured correctly.", "details": str(e)}), 500
+        except OSError as e:
+            app.logger.error(f"OSError while generating video for event {event_id}: {e}")
+            return jsonify({"error": "File system error occurred while generating the video.", "details": str(e)}), 500
+        except IOError as e:
+            app.logger.error(f"IOError while saving video for event {event_id}: {e}")
+            return jsonify({"error": "Unable to save the video.", "details": str(e)}), 500
+        except Exception as e:
+            app.logger.error(f"Unexpected error while generating video for event {event_id}: {e}")
+            return jsonify({"error": "An unexpected error occurred while generating the video.", "details": str(e)}), 500
+
+
+    @app.route('/static/videos/<path:filename>', methods=['GET'])
+    def serve_video(filename):
+        """
+        Serve video files from the static/videos directory.
+        """
+        try:
+            return send_from_directory('static/videos', filename)
+        except FileNotFoundError:
+            app.logger.error(f"Video file not found: {filename}")
+            return jsonify({"error": "Video file not found"}), 404
