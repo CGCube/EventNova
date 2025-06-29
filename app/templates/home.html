@@ -12,6 +12,7 @@
 {% block content %}
     <div class="container mt-4">
         <!-- Trending Movies Section -->
+        {% if trending %}
         <div class="row mb-4">
             <div class="col">
                 <h2 class="d-inline">Now Trending</h2>
@@ -32,6 +33,7 @@
                 </div>
             {% endfor %}
         </div>
+        {% endif %}
 
         {% if isLoggedIn and recommendations %}
         <!-- Recommended Movies Section -->
